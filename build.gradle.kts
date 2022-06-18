@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "net.onelitefeather"
-version = "1.0.0-SNAPSHOT"
+version = "1.0.0-BETA"
 
 val cloudNetVersion = "3.4.4-RELEASE"
 
