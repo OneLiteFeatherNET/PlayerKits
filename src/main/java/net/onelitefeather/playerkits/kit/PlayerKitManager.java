@@ -152,10 +152,13 @@ public final class PlayerKitManager {
         if (existsPlayerKit(playerKit.getName())) return false;
 
         ItemStack displayItem = buildDisplayItem(playerKit);
-        this.getDisplayItems().put(playerKit, displayItem);
-        this.playerKitList.add(playerKit);
-        this.kitInventory.addItem(displayItem);
 
+        if(playerKit.isVisible()) {
+            this.getDisplayItems().put(playerKit, displayItem);
+            this.kitInventory.addItem(displayItem);
+        }
+
+        this.playerKitList.add(playerKit);
         updatePlayerKits();
 
         return true;
@@ -178,11 +181,6 @@ public final class PlayerKitManager {
             return KitGrantResult.NOT_ENOUGH_SPACE;
         }
 
-        for (ItemStack itemStack : kitContents) {
-            if (itemStack == null) continue;
-            inventory.addItem(itemStack);
-        }
-
         if (playerKit.getCooldownTime() != -1) {
 
             PlayerKitCooldown kitCooldown = this.plugin.getCooldownManager().getPlayerKitCooldown(player.getUniqueId(), playerKit.getId());
@@ -190,13 +188,13 @@ public final class PlayerKitManager {
 
                 if (!kitCooldown.expired()) {
 
-                    player.sendMessage(this.plugin.getMessagesManager().getMessage("cooldown-expires-at", playerKit.getName(),
-                            this.plugin.getMessagesManager().formatMillis(kitCooldown.cooldown())));
+                    player.sendMessage(this.plugin.getMessagesManager().getMessageComponent("cooldown-expires-at", playerKit.getName(),
+                            this.plugin.getMessagesManager().formatMillis(kitCooldown.getCooldown())));
 
                     return KitGrantResult.COOLDOWN_NOT_EXPIRED;
                 }
 
-                this.plugin.getCooldownManager().removeCooldown(player.getUniqueId(), kitCooldown.kitId());
+                this.plugin.getCooldownManager().removeCooldown(player.getUniqueId(), kitCooldown.getKitId());
             }
 
             kitCooldown = new PlayerKitCooldown.Builder(playerKit.getId())
@@ -204,6 +202,11 @@ public final class PlayerKitManager {
                     .playerId(player.getUniqueId()).build();
 
             this.plugin.getCooldownManager().addCooldown(kitCooldown);
+        }
+
+        for (ItemStack itemStack : kitContents) {
+            if (itemStack == null) continue;
+            inventory.addItem(itemStack);
         }
 
         return KitGrantResult.SUCCESS;
