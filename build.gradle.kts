@@ -25,17 +25,14 @@ repositories {
 }
 
 dependencies {
+
     // Paper
     compileOnly(libs.paper)
-    // Sentry
-    compileOnly(libs.bundles.sentry)
-    // CloudNet
-    compileOnly(libs.bundles.cloudnet)
-    // ChatComponents
-    compileOnly(libs.bundles.adventure)
+
+
     // Commands
-    compileOnly(libs.bundles.cloud)
-    compileOnly(libs.commodore) {
+    implementation(libs.bundles.cloud)
+    implementation(libs.commodore) {
         isTransitive = false
     }
     // Testing

@@ -81,9 +81,7 @@ public final class PlayerKitCooldownManager {
      * @param playerKitCooldown the cooldown
      */
     public void addCooldown(@NotNull PlayerKitCooldown playerKitCooldown) {
-
         this.playerKitCooldowns.add(playerKitCooldown);
-        if (!this.file.exists()) return;
         updateKitCooldowns();
     }
 
@@ -100,8 +98,6 @@ public final class PlayerKitCooldownManager {
         if (!playerKitCooldown.expired()) return;
 
         this.playerKitCooldowns.remove(playerKitCooldown);
-
-        if (!this.file.exists()) return;
         updateKitCooldowns();
     }
 
@@ -118,7 +114,7 @@ public final class PlayerKitCooldownManager {
 
         for (int i = 0; i < kitCooldowns.size() && playerKitCooldown == null; i++) {
             PlayerKitCooldown kitCooldown = kitCooldowns.get(i);
-            if (kitCooldown.playerId().equals(playerId) && kitCooldown.kitId() == kitId) {
+            if (kitCooldown.getPlayerId().equals(playerId) && kitCooldown.getKitId() == kitId) {
                 playerKitCooldown = kitCooldown;
             }
         }
@@ -138,7 +134,7 @@ public final class PlayerKitCooldownManager {
         List<PlayerKitCooldown> kitCooldowns = this.getPlayerKitCooldowns();
         for (int i = 0; i < kitCooldowns.size() && playerKitCooldown == null; i++) {
             PlayerKitCooldown kitCooldown = kitCooldowns.get(i);
-            if (kitCooldown.kitId() == kitId) {
+            if (kitCooldown.getKitId() == kitId) {
                 playerKitCooldown = kitCooldown;
             }
         }
@@ -150,6 +146,7 @@ public final class PlayerKitCooldownManager {
      * Update the {@link PlayerKitCooldown} file.
      */
     private void updateKitCooldowns() {
+        if (!this.file.exists()) return;
         try (BufferedWriter bufferedWriter = Files.newBufferedWriter(this.file.toPath())) {
             bufferedWriter.write(GSON.toJson(this.playerKitCooldowns));
         } catch (IOException e) {

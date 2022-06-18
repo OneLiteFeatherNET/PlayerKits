@@ -4,7 +4,29 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
-public record PlayerKitCooldown(@NotNull UUID playerId, long cooldown, long kitId) {
+public final class PlayerKitCooldown {
+
+    private final UUID playerId;
+    private final long cooldown;
+    private final long kitId;
+
+    public PlayerKitCooldown(@NotNull UUID playerId, long cooldown, long kitId) {
+        this.playerId = playerId;
+        this.cooldown = cooldown;
+        this.kitId = kitId;
+    }
+
+    public UUID getPlayerId() {
+        return playerId;
+    }
+
+    public long getCooldown() {
+        return cooldown;
+    }
+
+    public long getKitId() {
+        return kitId;
+    }
 
     /**
      *
