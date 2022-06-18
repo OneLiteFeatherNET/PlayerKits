@@ -52,6 +52,7 @@ public record InventoryListener(@NotNull PlayerKitsPlugin plugin, @NotNull Playe
                 Component displayNameComp = itemMeta.displayName();
                 if (displayNameComp == null) return;
 
+
                 PlayerKit playerKit = this.playerKitManager.getPlayerKit(currentItem);
                 if (playerKit == null) {
                     player.sendMessage(this.plugin.getMessagesManager().getMessageComponent("kit.not-found", PlainTextComponentSerializer.plainText().serialize(displayNameComp)));
@@ -60,13 +61,9 @@ public record InventoryListener(@NotNull PlayerKitsPlugin plugin, @NotNull Playe
 
                 ClickType clickType = event.getClick();
                 if (clickType.isLeftClick()) {
-
-                    KitGrantResult kitGrantResult = this.playerKitManager.grantKit(player, playerKit);
-                    if (kitGrantResult == KitGrantResult.SUCCESS) {
+                    if (this.playerKitManager.grantKit(player, playerKit) == KitGrantResult.SUCCESS) {
                         player.sendMessage(this.plugin.getMessagesManager().getMessageComponent("kit.grant.success", playerKit.getName()));
                     }
-
-                    player.closeInventory();
                 }
 
                 if (clickType.isRightClick()) {

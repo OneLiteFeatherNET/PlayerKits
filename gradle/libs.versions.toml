@@ -24,7 +24,7 @@ mariadbJavaClient = "3.0.5"
 # Database Changelog
 liquibaseCore = "3.4.1"
 liquibaseGroovy = "3.4.1"
-liquibaseHibernate5 = "4.11.0"
+liquibaseHibernate5 = "4.9.1"
 logback = "1.2.3"
 
 
@@ -50,11 +50,12 @@ cloudMinecraftExtras = { group = "cloud.commandframework", name = "cloud-minecra
 commodore = { group = "me.lucko", name = "commodore", version.ref = "commodore" }
 # Database
 hibernate = { group = "org.hibernate", name = "hibernate-core", version.ref = "hibernate" }
+hibernateEnvers = { group = "org.hibernate", name = "hibernate-envers", version.ref = "hibernate" }
 hibernateHikariCP = { group = "org.hibernate", name = "hibernate-hikaricp", version.ref = "hibernate" }
 mariadbJavaClient = { group = "org.mariadb.jdbc", name = "mariadb-java-client", version.ref = "mariadbJavaClient" }
 # Database Changelog
 liquibaseCore = { group = "org.liquibase", name = "liquibase-core", version.ref = "liquibaseCore" }
-# liquibaseHibernate5 = { group = "org.liquibase.ext", name = "liquibase-hibernate5", version.ref = "liquibaseHibernate5" }
+liquibaseHibernate5 = { group = "org.liquibase.ext", name = "liquibase-hibernate5", version.ref = "liquibaseHibernate5" }
 logbackCore = { group = "ch.qos.logback", name = "logback-core", version.ref = "logback" }
 logbackClassic = { group = "ch.qos.logback", name = "logback-classic", version.ref = "logback" }
 
@@ -64,8 +65,8 @@ cloudnet = ["cloudnetPerms", "cloudnetBridge", "cloudnetDriver"]
 sentry = ["sentry", "sentryJul"]
 adventure = ["adventureApi", "adventureMinimessage", "adventureSerializerPlain"]
 cloud = ["cloudPaper", "cloudAnnotions", "cloudMinecraftExtras"]
-hibernate = ["hibernate", "hibernateHikariCP", "mariadbJavaClient"]
-liquibase = ["liquibaseCore"]
+hibernate = ["hibernate", "hibernateHikariCP", "mariadbJavaClient", "hibernateEnvers"]
+liquibase = ["liquibaseCore", "liquibaseHibernate5"]
 logback = ["logbackCore", "logbackClassic"]
 
 [plugins]

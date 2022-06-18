@@ -201,7 +201,7 @@ public final class PlayerKitManager {
                     .cooldown(TimeUtil.getCooldownTime(playerKit.getCooldownTimeUnit(), playerKit.getCooldownTime()))
                     .playerId(player.getUniqueId()).build();
 
-            this.plugin.getCooldownManager().createKitCooldown(kitCooldown);
+            this.plugin.getCooldownManager().addCooldown(kitCooldown);
         }
 
         for (ItemStack itemStack : kitContents) {

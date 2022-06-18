@@ -8,39 +8,22 @@ import cloud.commandframework.execution.CommandExecutionCoordinator;
 import cloud.commandframework.meta.CommandMeta;
 import cloud.commandframework.minecraft.extras.MinecraftHelp;
 import cloud.commandframework.paper.PaperCommandManager;
-import liquibase.Liquibase;
-import liquibase.database.DatabaseConnection;
-import liquibase.database.DatabaseFactory;
-import liquibase.exception.DatabaseException;
-import liquibase.exception.LiquibaseException;
-import liquibase.resource.ClassLoaderResourceAccessor;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.onelitefeather.playerkits.commands.KitCommand;
 import net.onelitefeather.playerkits.kit.PlayerKitManager;
-import net.onelitefeather.playerkits.kit.cooldown.PlayerKitCooldown;
 import net.onelitefeather.playerkits.kit.cooldown.PlayerKitCooldownManager;
 import net.onelitefeather.playerkits.language.MessagesManager;
 import net.onelitefeather.playerkits.listener.InventoryListener;
 import net.onelitefeather.playerkits.listener.PlayerConnectionListener;
 import net.onelitefeather.playerkits.registry.ItemRegistry;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.hibernate.SessionFactory;
-import org.hibernate.boot.model.naming.ImplicitNamingStrategyLegacyJpaImpl;
-import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
-import org.hibernate.cfg.Configuration;
-import org.hibernate.cfg.Environment;
-import org.hibernate.dialect.MariaDBDialect;
-import org.hibernate.hikaricp.internal.HikariCPConnectionProvider;
-import org.hibernate.tool.schema.Action;
 
 import java.util.List;
-import java.util.Properties;
 import java.util.function.Function;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class PlayerKitsPlugin extends JavaPlugin {
 
@@ -49,16 +32,15 @@ public class PlayerKitsPlugin extends JavaPlugin {
     private PlayerKitCooldownManager playerKitCooldownManager;
     private ItemRegistry itemRegistry;
     private MessagesManager messagesManager;
-    private SessionFactory sessionFactory;
 
     @Override
     public void onEnable() {
 
         saveDefaultConfig();
-        if (!isDebugEnabled()) {
-            applyMigrations();
-        }
-        buildSessionFactory();
+
+        FileConfiguration config = getConfig();
+        config.options().copyDefaults(true);
+        saveConfig();
 
         PluginManager pluginManager = getServer().getPluginManager();
 
@@ -70,13 +52,8 @@ public class PlayerKitsPlugin extends JavaPlugin {
         this.playerKitCooldownManager = new PlayerKitCooldownManager(this);
 
         buildCommandSystem();
-
         pluginManager.registerEvents(new InventoryListener(this, this.playerKitManager, this.playerKitCooldownManager), this);
         pluginManager.registerEvents(new PlayerConnectionListener(this, this.playerKitManager), this);
-    }
-
-    private boolean isDebugEnabled() {
-        return this.getSLF4JLogger().isDebugEnabled();
     }
 
     @Override
@@ -136,10 +113,6 @@ public class PlayerKitsPlugin extends JavaPlugin {
         return this.getConfig().getStringList("special-players");
     }
 
-    public SessionFactory getSessionFactory() {
-        return sessionFactory;
-    }
-
     public boolean isSpecialPlayer(Player player) {
         return getSpecialPlayers().contains(player.getUniqueId().toString());
     }
@@ -149,60 +122,5 @@ public class PlayerKitsPlugin extends JavaPlugin {
         players.remove(player.getUniqueId().toString());
         this.getConfig().set("special-players", !players.isEmpty() ? players : null);
         saveConfig();
-    }
-
-    private void applyMigrations() {
-        DatabaseConnection database;
-        try {
-            database = DatabaseFactory.getInstance().openConnection(
-                    getConfig().getString("database.jdbcUrl"),
-                    getConfig().getString("database.username"),
-                    getConfig().getString("database.password"),
-                    null,
-                    new ClassLoaderResourceAccessor(getClassLoader())
-            );
-        } catch (DatabaseException e) {
-            getLogger().log(Level.SEVERE, "Something went wrong at open database connection", e);
-            this.getServer().getPluginManager().disablePlugin(this);
-            return;
-        }
-
-        if (database != null) {
-            try {
-                Logger.getLogger("liquibase").setParent(getLogger());
-                Liquibase liquibase = new Liquibase("db/changelog/db.changelog-diff.xml", new ClassLoaderResourceAccessor(getClassLoader()), database);
-                liquibase.validate();
-                liquibase.update((String) null);
-            } catch (LiquibaseException e) {
-                getLogger().log(Level.SEVERE, "Something went wrong at apply database changes", e);
-                this.getServer().getPluginManager().disablePlugin(this);
-            }
-        }
-
-    }
-
-
-    private void buildSessionFactory() {
-
-        var configuration = new Configuration();
-        var properties = new Properties();
-        properties.put(Environment.URL, getConfig().getString("database.jdbcUrl"));
-        properties.put(Environment.DRIVER, getConfig().getString("database.driver"));
-        properties.put(Environment.USER, getConfig().getString("database.username"));
-        properties.put(Environment.PASS, getConfig().getString("database.password"));
-        properties.put(Environment.IMPLICIT_NAMING_STRATEGY, ImplicitNamingStrategyLegacyJpaImpl.class);
-
-        properties.put(Environment.CONNECTION_PROVIDER, HikariCPConnectionProvider.class);
-        properties.put(Environment.DIALECT, new MariaDBDialect());
-
-        if (isDebugEnabled()) {
-            properties.put(Environment.HBM2DDL_AUTO, Action.CREATE_DROP);
-        }
-
-        configuration.setProperties(properties);
-        configuration.addAnnotatedClass(PlayerKitCooldown.class);
-
-        var registry = new StandardServiceRegistryBuilder().applySettings(configuration.getProperties()).build();
-        this.sessionFactory = configuration.buildSessionFactory(registry);
     }
 }
