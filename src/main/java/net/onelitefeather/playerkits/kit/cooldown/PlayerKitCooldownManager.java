@@ -1,17 +1,12 @@
 package net.onelitefeather.playerkits.kit.cooldown;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import net.onelitefeather.playerkits.PlayerKitsPlugin;
 import net.onelitefeather.playerkits.kit.PlayerKit;
+import org.hibernate.HibernateException;
+import org.hibernate.Session;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -20,25 +15,12 @@ import java.util.logging.Level;
 
 public final class PlayerKitCooldownManager {
 
-    private static final Gson GSON = new GsonBuilder().serializeNulls().create();
-    private final static String FILE_NAME = "kitsCooldown.json";
     private final PlayerKitsPlugin plugin;
     private final List<PlayerKitCooldown> playerKitCooldowns;
-    private final File file;
 
     public PlayerKitCooldownManager(@NotNull PlayerKitsPlugin plugin) {
         this.plugin = plugin;
         this.playerKitCooldowns = new ArrayList<>();
-
-        this.file = new File(plugin.getDataFolder(), FILE_NAME);
-        if (!this.file.exists()) {
-            try {
-                Files.createFile(this.file.toPath());
-            } catch (IOException e) {
-                this.plugin.getLogger().log(Level.SEVERE, "Could not create File", e);
-            }
-        }
-
         load(this.playerKitCooldowns::addAll);
     }
 
@@ -55,24 +37,17 @@ public final class PlayerKitCooldownManager {
      * @param consumer the consumer
      */
     public void load(@NotNull Consumer<List<PlayerKitCooldown>> consumer) {
+        List<PlayerKitCooldown> kitCooldowns = new ArrayList<>();
 
-        if (this.file.exists()) {
-
-            List<PlayerKitCooldown> kitCooldowns = new ArrayList<>();
-
-            try (BufferedReader bufferedReader = Files.newBufferedReader(this.file.toPath())) {
-
-                PlayerKitCooldown[] data = GSON.fromJson(bufferedReader, PlayerKitCooldown[].class);
-                if (data != null && data.length > 0) {
-                    kitCooldowns.addAll(List.of(data));
-                }
-
-            } catch (IOException e) {
-                this.plugin.getLogger().log(Level.SEVERE, "Cannot load cooldowns!", e);
-            }
-
-            consumer.accept(kitCooldowns);
+        try (Session session = this.plugin.getSessionFactory().openSession()) {
+            session.beginTransaction();
+            var query = session.createQuery("SELECT kdc FROM PlayerKitCooldown kdc", PlayerKitCooldown.class);
+            kitCooldowns.addAll(query.list());
+        } catch (HibernateException e) {
+            this.plugin.getLogger().log(Level.SEVERE, "Could not load kit cooldowns.", e);
         }
+
+        consumer.accept(kitCooldowns);
     }
 
     /**
@@ -80,9 +55,47 @@ public final class PlayerKitCooldownManager {
      *
      * @param playerKitCooldown the cooldown
      */
-    public void addCooldown(@NotNull PlayerKitCooldown playerKitCooldown) {
-        this.playerKitCooldowns.add(playerKitCooldown);
-        updateKitCooldowns();
+    public void createKitCooldown(@NotNull PlayerKitCooldown playerKitCooldown) {
+
+        if (!this.playerKitCooldowns.contains(playerKitCooldown)) {
+            this.playerKitCooldowns.add(playerKitCooldown);
+        }
+
+        if (!exists(playerKitCooldown)) {
+            try (Session session = this.plugin.getSessionFactory().openSession()) {
+                session.beginTransaction();
+                session.persist(playerKitCooldown);
+                session.getTransaction().commit();
+            } catch (HibernateException e) {
+                this.plugin.getLogger().log(Level.SEVERE, "Could not save kit cooldown", e);
+            }
+        } else {
+            updateKitCooldown(playerKitCooldown);
+        }
+    }
+
+    public void updateKitCooldown(PlayerKitCooldown playerKitCooldown) {
+        if (exists(playerKitCooldown)) {
+            try (Session session = this.plugin.getSessionFactory().openSession()) {
+                session.beginTransaction();
+                session.merge(playerKitCooldown);
+                session.getTransaction().commit();
+            } catch (HibernateException e) {
+                this.plugin.getLogger().log(Level.SEVERE, "Could not update kit cooldown", e);
+            }
+        }
+    }
+
+    public boolean exists(PlayerKitCooldown playerKitCooldown) {
+        try (Session session = this.plugin.getSessionFactory().openSession()) {
+            var kitCooldown = session.createQuery("SELECT kd FROM PlayerKitCooldown kd WHERE playerId = :playerId AND kitId = :kitId", PlayerKitCooldown.class);
+            kitCooldown.setParameter("playerId", playerKitCooldown.getPlayerId().toString());
+            kitCooldown.setParameter("kitId", playerKitCooldown.getKitId());
+            return kitCooldown.uniqueResult() != null;
+        } catch (HibernateException e) {
+            this.plugin.getLogger().log(Level.SEVERE, "Something went wrong!", e);
+            return false;
+        }
     }
 
     /**
@@ -97,14 +110,24 @@ public final class PlayerKitCooldownManager {
         if (playerKitCooldown == null) return;
         if (!playerKitCooldown.expired()) return;
 
+        if (exists(playerKitCooldown)) {
+            try (Session session = this.plugin.getSessionFactory().openSession()) {
+                session.beginTransaction();
+                session.remove(playerKitCooldown);
+                session.getTransaction().commit();
+            } catch (HibernateException e) {
+                this.plugin.getLogger().log(Level.SEVERE, "Could not remove the KitCooldown from the database.", e);
+            }
+
+        }
+
         this.playerKitCooldowns.remove(playerKitCooldown);
-        updateKitCooldowns();
     }
 
     /**
      * @param playerId the player who claimed the {@link PlayerKit}
      * @param kitId    the id of the {@link PlayerKit}
-     * @return the {@link PlayerKit} by the given playerId and kitId
+     * @return the {@link PlayerKitCooldown} by the given playerId and kitId
      */
     @Nullable
     public PlayerKitCooldown getPlayerKitCooldown(@NotNull UUID playerId, long kitId) {
@@ -124,7 +147,7 @@ public final class PlayerKitCooldownManager {
 
     /**
      * @param kitId the id of the {@link PlayerKit}
-     * @return the {@link PlayerKit} by the given kitId
+     * @return the {@link PlayerKitCooldown} by the given kitId
      */
     @Nullable
     public PlayerKitCooldown getPlayerKitCooldown(long kitId) {
@@ -140,17 +163,5 @@ public final class PlayerKitCooldownManager {
         }
 
         return playerKitCooldown;
-    }
-
-    /**
-     * Update the {@link PlayerKitCooldown} file.
-     */
-    private void updateKitCooldowns() {
-        if (!this.file.exists()) return;
-        try (BufferedWriter bufferedWriter = Files.newBufferedWriter(this.file.toPath())) {
-            bufferedWriter.write(GSON.toJson(this.playerKitCooldowns));
-        } catch (IOException e) {
-            this.plugin.getLogger().log(Level.SEVERE, "Could not update kit cooldowns", e);
-        }
     }
 }
