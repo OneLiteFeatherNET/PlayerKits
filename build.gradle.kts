@@ -2,9 +2,10 @@ plugins {
     id("java")
     `java-library`
     checkstyle
-    alias(libs.plugins.pluginYmlBukkit)
-    alias(libs.plugins.runPaper)
-    alias(libs.plugins.shadow)
+    id("org.liquibase.gradle") version "2.1.0"
+    id("net.minecrell.plugin-yml.bukkit") version "0.5.1"
+    id("xyz.jpenilla.run-paper") version "1.0.6"
+    id("com.github.johnrengelman.shadow") version "7.1.2"
 }
 
 group = "net.onelitefeather"
@@ -29,12 +30,23 @@ dependencies {
     // Paper
     compileOnly(libs.paper)
 
+    implementation(libs.bundles.hibernate)
+
+    implementation(libs.liquibaseCore)
+//    implementation(libs.liquibaseHibernate5)
 
     // Commands
     implementation(libs.bundles.cloud)
     implementation(libs.commodore) {
         isTransitive = false
     }
+
+    liquibaseRuntime(libs.mariadbJavaClient)
+
+    liquibaseRuntime("org.liquibase:liquibase-core:3.10.3")
+    liquibaseRuntime("org.liquibase:liquibase-groovy-dsl:2.0.1")
+    liquibaseRuntime("ch.qos.logback:logback-core:1.2.3")
+    liquibaseRuntime("ch.qos.logback:logback-classic:1.2.3")
     // Testing
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.6.0")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
@@ -75,4 +87,22 @@ bukkit {
 
     authors = listOf("UniqueGame", "OneLiteFeather")
 
+}
+
+liquibase {
+    activities {
+        create("diffMain") {
+            (this.arguments as MutableMap<String, String>).apply {
+                this["changeLogFile"] = "src/main/resources/db/changelog/db.changelog-diff.xml"
+                this["url"] = "jdbc:mariadb://localhost:3307/playerkits"
+                this["username"] = "root"
+                this["password"] = "%Schueler90"
+
+                this["referenceUrl"] = "jdbc:mariadb://localhost:3307/playerkitsdiff"
+                this["referenceUsername"] = "root"
+                this["referencePassword"] = "%Schueler90"
+
+            }
+        }
+    }
 }
