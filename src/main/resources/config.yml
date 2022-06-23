@@ -1,3 +1,9 @@
+database:
+  jdbcUrl: 'jdbc:mariadb://localhost:3307/playerkits?useSSL=false'
+  username: 'root'
+  password: '%Schueler90'
+  driver: 'org.mariadb.jdbc.Driver'
+  dialect: 'org.hibernate.dialect.MariaDBDialect'
 gui:
   title: 'Kit Overview'
   preview-title: 'Kit Preview'
