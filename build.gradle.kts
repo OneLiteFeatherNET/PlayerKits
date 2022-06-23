@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "net.onelitefeather"
-version = "1.0.0-BETA"
+version = "1.0.0-PRE"
 
 val cloudNetVersion = "3.4.4-RELEASE"
 
@@ -81,6 +81,9 @@ tasks {
 }
 
 bukkit {
+    if (System.getenv().containsKey("CI")) {
+        version =  "${rootProject.version}+${System.getenv("CI_COMMIT_SHORT_SHA")}"
+    }
     main = "${rootProject.group}.playerkits.PlayerKitsPlugin"
     apiVersion = "1.18"
     load = net.minecrell.pluginyml.bukkit.BukkitPluginDescription.PluginLoadOrder.POSTWORLD
