@@ -15,6 +15,7 @@ import java.util.logging.Level;
 
 public final class PlayerKitCooldownManager {
 
+    public static final long NO_COOLDOWN = -1;
     private final PlayerKitsPlugin plugin;
     private final List<PlayerKitCooldown> playerKitCooldowns;
 
@@ -41,7 +42,7 @@ public final class PlayerKitCooldownManager {
 
         try (Session session = this.plugin.getSessionFactory().openSession()) {
             session.beginTransaction();
-            var query = session.createQuery("SELECT kdc FROM PlayerKitCooldown kdc", PlayerKitCooldown.class);
+            var query = session.createQuery("SELECT kd FROM PlayerKitCooldown kd", PlayerKitCooldown.class);
             kitCooldowns.addAll(query.list());
         } catch (HibernateException e) {
             this.plugin.getLogger().log(Level.SEVERE, "Could not load kit cooldowns.", e);
@@ -57,11 +58,8 @@ public final class PlayerKitCooldownManager {
      */
     public void createKitCooldown(@NotNull PlayerKitCooldown playerKitCooldown) {
 
-        if (!this.playerKitCooldowns.contains(playerKitCooldown)) {
-            this.playerKitCooldowns.add(playerKitCooldown);
-        }
-
         if (!exists(playerKitCooldown)) {
+            this.playerKitCooldowns.add(playerKitCooldown);
             try (Session session = this.plugin.getSessionFactory().openSession()) {
                 session.beginTransaction();
                 session.persist(playerKitCooldown);
@@ -69,26 +67,13 @@ public final class PlayerKitCooldownManager {
             } catch (HibernateException e) {
                 this.plugin.getLogger().log(Level.SEVERE, "Could not save kit cooldown", e);
             }
-        } else {
-            updateKitCooldown(playerKitCooldown);
-        }
-    }
-
-    public void updateKitCooldown(PlayerKitCooldown playerKitCooldown) {
-        if (exists(playerKitCooldown)) {
-            try (Session session = this.plugin.getSessionFactory().openSession()) {
-                session.beginTransaction();
-                session.merge(playerKitCooldown);
-                session.getTransaction().commit();
-            } catch (HibernateException e) {
-                this.plugin.getLogger().log(Level.SEVERE, "Could not update kit cooldown", e);
-            }
         }
     }
 
     public boolean exists(PlayerKitCooldown playerKitCooldown) {
         try (Session session = this.plugin.getSessionFactory().openSession()) {
-            var kitCooldown = session.createQuery("SELECT kd FROM PlayerKitCooldown kd WHERE playerId = :playerId AND kitId = :kitId", PlayerKitCooldown.class);
+            var kitCooldown = session.createQuery("SELECT kdc FROM PlayerKitCooldown kdc WHERE playerId = :playerId AND kitId = :kitId", PlayerKitCooldown.class);
+            kitCooldown.setMaxResults(1);
             kitCooldown.setParameter("playerId", playerKitCooldown.getPlayerId().toString());
             kitCooldown.setParameter("kitId", playerKitCooldown.getKitId());
             return kitCooldown.uniqueResult() != null;
@@ -115,13 +100,11 @@ public final class PlayerKitCooldownManager {
                 session.beginTransaction();
                 session.remove(playerKitCooldown);
                 session.getTransaction().commit();
+                this.playerKitCooldowns.remove(playerKitCooldown);
             } catch (HibernateException e) {
                 this.plugin.getLogger().log(Level.SEVERE, "Could not remove the KitCooldown from the database.", e);
             }
-
         }
-
-        this.playerKitCooldowns.remove(playerKitCooldown);
     }
 
     /**
@@ -163,5 +146,9 @@ public final class PlayerKitCooldownManager {
         }
 
         return playerKitCooldown;
+    }
+
+    public boolean isCooldownExpired(@Nullable PlayerKitCooldown kitCooldown) {
+        return kitCooldown == null || kitCooldown.expired();
     }
 }

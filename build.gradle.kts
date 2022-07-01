@@ -1,7 +1,6 @@
 plugins {
     id("java")
     `java-library`
-    checkstyle
     id("org.liquibase.gradle") version "2.1.0"
     id("net.minecrell.plugin-yml.bukkit") version "0.5.1"
     id("xyz.jpenilla.run-paper") version "1.0.6"
@@ -9,7 +8,7 @@ plugins {
 }
 
 group = "net.onelitefeather"
-version = "1.0.0-PRE"
+version = "1.0.0"
 
 val cloudNetVersion = "3.4.4-RELEASE"
 
