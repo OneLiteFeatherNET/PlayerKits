@@ -7,6 +7,7 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 public final class PlayerKit {
@@ -101,6 +102,28 @@ public final class PlayerKit {
         return this.content;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof PlayerKit playerKit)) return false;
+
+        if (id != playerKit.id) return false;
+        if (cooldownTime != playerKit.cooldownTime) return false;
+        if (Double.compare(playerKit.price, price) != 0) return false;
+        if (visible != playerKit.visible) return false;
+        if (!Objects.equals(items, playerKit.items)) return false;
+        if (!Objects.equals(name, playerKit.name)) return false;
+        if (!Objects.equals(containerItem, playerKit.containerItem))
+            return false;
+
+        return cooldownTimeUnit == playerKit.cooldownTimeUnit;
+    }
+
+    @NotNull
+    public String getDisplayName() {
+        return this.getContainerItem().getDisplayName();
+    }
+
     public final static class PlayerKitBuilder {
 
         private final long id;
@@ -126,7 +149,7 @@ public final class PlayerKit {
             return this;
         }
 
-        public PlayerKitBuilder content(@Nullable ItemStack @NotNull[] stacks) {
+        public PlayerKitBuilder content(@Nullable ItemStack @NotNull [] stacks) {
             this.items = InventoryUtil.serializeInventoryToString(stacks);
             return this;
         }

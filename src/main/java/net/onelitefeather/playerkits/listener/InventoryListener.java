@@ -3,7 +3,6 @@ package net.onelitefeather.playerkits.listener;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.onelitefeather.playerkits.PlayerKitsPlugin;
-import net.onelitefeather.playerkits.kit.KitGrantResult;
 import net.onelitefeather.playerkits.kit.PlayerKit;
 import net.onelitefeather.playerkits.kit.PlayerKitManager;
 import net.onelitefeather.playerkits.kit.cooldown.PlayerKitCooldownManager;
@@ -52,7 +51,6 @@ public record InventoryListener(@NotNull PlayerKitsPlugin plugin, @NotNull Playe
                 Component displayNameComp = itemMeta.displayName();
                 if (displayNameComp == null) return;
 
-
                 PlayerKit playerKit = this.playerKitManager.getPlayerKit(currentItem);
                 if (playerKit == null) {
                     player.sendMessage(this.plugin.getMessagesManager().getMessageComponent("kit.not-found", PlainTextComponentSerializer.plainText().serialize(displayNameComp)));
@@ -61,9 +59,8 @@ public record InventoryListener(@NotNull PlayerKitsPlugin plugin, @NotNull Playe
 
                 ClickType clickType = event.getClick();
                 if (clickType.isLeftClick()) {
-                    if (this.playerKitManager.grantKit(player, playerKit) == KitGrantResult.SUCCESS) {
-                        player.sendMessage(this.plugin.getMessagesManager().getMessageComponent("kit.grant.success", playerKit.getName()));
-                    }
+                    this.playerKitManager.handleGrantKit(player, player, playerKit, false);
+                    player.closeInventory();
                 }
 
                 if (clickType.isRightClick()) {
