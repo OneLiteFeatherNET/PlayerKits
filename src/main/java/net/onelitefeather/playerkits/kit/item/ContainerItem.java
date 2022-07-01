@@ -8,6 +8,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Objects;
+
 public final class ContainerItem {
 
     private static final ItemFlag[] ITEM_FLAGS = ItemFlag.values();
@@ -26,13 +28,12 @@ public final class ContainerItem {
     }
 
     /**
-     *
      * @return the {@link ItemStack}
      */
     @NotNull
     public ItemStack toItemStack() {
 
-        if(this.itemStack == null) {
+        if (this.itemStack == null) {
             this.itemStack = new ItemStack(material);
             this.itemStack.addItemFlags(ITEM_FLAGS);
 
@@ -44,8 +45,16 @@ public final class ContainerItem {
         return this.itemStack;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ContainerItem that)) return false;
+
+        if (material != that.material) return false;
+        return Objects.equals(displayName, that.displayName);
+    }
+
     /**
-     *
      * @return the material of the item
      */
     @NotNull
@@ -54,7 +63,6 @@ public final class ContainerItem {
     }
 
     /**
-     *
      * @return the displayName of the item
      */
     @NotNull
