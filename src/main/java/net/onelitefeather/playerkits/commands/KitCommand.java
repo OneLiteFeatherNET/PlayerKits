@@ -13,9 +13,11 @@ import net.onelitefeather.playerkits.PlayerKitsPlugin;
 import net.onelitefeather.playerkits.kit.PlayerKit;
 import net.onelitefeather.playerkits.kit.PlayerKitManager;
 import net.onelitefeather.playerkits.kit.item.ContainerItem;
+import net.onelitefeather.playerkits.util.InventoryUtil;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -23,6 +25,8 @@ import java.util.Queue;
 import java.util.concurrent.TimeUnit;
 
 public record KitCommand(@NotNull PlayerKitsPlugin plugin, @NotNull PlayerKitManager playerKitManager) {
+
+    private static final String DUMMY_ITEMS = InventoryUtil.serializeInventoryToString(new ItemStack[]{new ItemStack(Material.STONE)});
 
     @CommandDescription("Shows the help menu")
     @CommandMethod("playerkits help [query]")
@@ -69,6 +73,12 @@ public record KitCommand(@NotNull PlayerKitsPlugin plugin, @NotNull PlayerKitMan
     @CommandMethod("playerkit give <player> <kit>")
     @CommandPermission("playerkits.command.give")
     public void grantPlayerKit(CommandSender commandSender, @Argument(value = "player") Player player, @Argument(value = "kit", parserName = "playerKit") PlayerKit playerKit) {
+
+        if (!this.playerKitManager.existsPlayerKit(playerKit.getName())) {
+            commandSender.sendMessage(this.plugin.getMessagesManager().getMessageComponent("kit.not-found", playerKit.getName()));
+            return;
+        }
+
         this.playerKitManager.handleGrantKit(commandSender, player, playerKit, true);
     }
 
@@ -88,12 +98,11 @@ public record KitCommand(@NotNull PlayerKitsPlugin plugin, @NotNull PlayerKitMan
 
     @Parser(name = "playerKit", suggestions = "playerKits")
     public @NotNull PlayerKit parsePlayerKit(CommandContext<CommandSender> commandSender, @NotNull Queue<String> input) {
-
         var name = input.remove();
         var playerKit = this.playerKitManager.getPlayerKit(name);
 
         if(playerKit == null) {
-            playerKit = new PlayerKit(99, name, new ContainerItem(Material.AIR, "dummy"), "", 0, false, TimeUnit.DAYS, -1);
+            playerKit = new PlayerKit(99, name, new ContainerItem(Material.AIR, "dummy"), DUMMY_ITEMS, 0, false, TimeUnit.DAYS, -1);
         }
 
         return playerKit;
