@@ -30,8 +30,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.model.naming.ImplicitNamingStrategyLegacyJpaImpl;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
+import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.cfg.Configuration;
-import org.hibernate.cfg.Environment;
 import org.hibernate.dialect.MariaDBDialect;
 import org.hibernate.hikaricp.internal.HikariCPConnectionProvider;
 import org.hibernate.tool.schema.Action;
@@ -65,7 +65,6 @@ public class PlayerKitsPlugin extends JavaPlugin {
         this.messagesManager = new MessagesManager(this);
         this.itemRegistry = new ItemRegistry(this);
 
-
         this.playerKitManager = new PlayerKitManager(this);
         this.playerKitCooldownManager = new PlayerKitCooldownManager(this);
 
@@ -81,7 +80,9 @@ public class PlayerKitsPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        super.onDisable();
+        if (this.sessionFactory != null && !this.sessionFactory.isClosed()) {
+            this.sessionFactory.close();
+        }
     }
 
     public PlayerKitCooldownManager getCooldownManager() {
@@ -186,17 +187,17 @@ public class PlayerKitsPlugin extends JavaPlugin {
 
         var configuration = new Configuration();
         var properties = new Properties();
-        properties.put(Environment.URL, getConfig().getString("database.jdbcUrl"));
-        properties.put(Environment.DRIVER, getConfig().getString("database.driver"));
-        properties.put(Environment.USER, getConfig().getString("database.username"));
-        properties.put(Environment.PASS, getConfig().getString("database.password"));
-        properties.put(Environment.IMPLICIT_NAMING_STRATEGY, ImplicitNamingStrategyLegacyJpaImpl.class);
+        properties.put(AvailableSettings.URL, getConfig().getString("database.jdbcUrl"));
+        properties.put(AvailableSettings.DRIVER, getConfig().getString("database.driver"));
+        properties.put(AvailableSettings.USER, getConfig().getString("database.username"));
+        properties.put(AvailableSettings.PASS, getConfig().getString("database.password"));
+        properties.put(AvailableSettings.IMPLICIT_NAMING_STRATEGY, ImplicitNamingStrategyLegacyJpaImpl.class);
 
-        properties.put(Environment.CONNECTION_PROVIDER, HikariCPConnectionProvider.class);
-        properties.put(Environment.DIALECT, new MariaDBDialect());
+        properties.put(AvailableSettings.CONNECTION_PROVIDER, HikariCPConnectionProvider.class);
+        properties.put(AvailableSettings.DIALECT, new MariaDBDialect());
 
         if (isDebugEnabled()) {
-            properties.put(Environment.HBM2DDL_AUTO, Action.CREATE_DROP);
+            properties.put(AvailableSettings.HBM2DDL_AUTO, Action.CREATE_DROP);
         }
 
         configuration.setProperties(properties);

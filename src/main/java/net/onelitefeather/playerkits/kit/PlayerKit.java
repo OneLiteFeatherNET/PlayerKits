@@ -7,6 +7,7 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
@@ -29,15 +30,15 @@ public final class PlayerKit {
     @Expose
     private final TimeUnit cooldownTimeUnit;
 
-    // TODO: Economy Support
     @Expose
     private final double price;
 
     @Expose
     private final boolean visible;
 
-    private transient ItemStack[] content;
+    private ItemStack[] content;
 
+    @SuppressWarnings("java:S107")
     public PlayerKit(long id,
                      @NotNull String name,
                      @NotNull ContainerItem containerItem,
@@ -119,12 +120,29 @@ public final class PlayerKit {
         return cooldownTimeUnit == playerKit.cooldownTimeUnit;
     }
 
+    @Override
+    public int hashCode() {
+        int result;
+        long temp;
+        result = (int) (id ^ (id >>> 32));
+        result = 31 * result + (int) (cooldownTime ^ (cooldownTime >>> 32));
+        result = 31 * result + (items != null ? items.hashCode() : 0);
+        result = 31 * result + (name != null ? name.hashCode() : 0);
+        result = 31 * result + (containerItem != null ? containerItem.hashCode() : 0);
+        result = 31 * result + (cooldownTimeUnit != null ? cooldownTimeUnit.hashCode() : 0);
+        temp = Double.doubleToLongBits(price);
+        result = 31 * result + (int) (temp ^ (temp >>> 32));
+        result = 31 * result + (visible ? 1 : 0);
+        result = 31 * result + Arrays.hashCode(content);
+        return result;
+    }
+
     @NotNull
     public String getDisplayName() {
         return this.getContainerItem().getDisplayName();
     }
 
-    public final static class PlayerKitBuilder {
+    public static final class PlayerKitBuilder {
 
         private final long id;
         private final String name;
@@ -134,7 +152,6 @@ public final class PlayerKit {
         private TimeUnit cooldownTimeUnit;
         private long cooldownTime;
 
-        //TODO: Economy Support
         private double price;
 
         private boolean visible;

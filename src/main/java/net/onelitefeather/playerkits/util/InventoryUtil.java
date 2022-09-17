@@ -2,31 +2,33 @@ package net.onelitefeather.playerkits.util;
 
 import net.onelitefeather.playerkits.PlayerKitsPlugin;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.io.BukkitObjectInputStream;
 import org.bukkit.util.io.BukkitObjectOutputStream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 
 public final class InventoryUtil {
 
-    public static void serializeInventory(@Nullable ItemStack @NotNull[] inventory, @NotNull OutputStream outputStream) {
+    private InventoryUtil() {
+        throw new IllegalStateException("Utility class");
+    }
+
+    public static void serializeInventory(@Nullable ItemStack[] inventory, @NotNull OutputStream outputStream) {
+        if(inventory == null) return;
         try (BukkitObjectOutputStream dataOutput = new BukkitObjectOutputStream(outputStream)) {
             dataOutput.writeInt(inventory.length);
             for (ItemStack itemStack : inventory) {
                 dataOutput.writeObject(itemStack);
             }
         } catch (IOException e) {
-            PlayerKitsPlugin.getPlugin(PlayerKitsPlugin.class).getLogger().log(Level.SEVERE, "Unable to save item stacks.", e);
+            JavaPlugin.getPlugin(PlayerKitsPlugin.class).getLogger().log(Level.SEVERE, "Unable to save item stacks.", e);
         }
     }
 
@@ -40,7 +42,7 @@ public final class InventoryUtil {
             }
             return itemStacks;
         } catch (IOException | ClassNotFoundException e) {
-            PlayerKitsPlugin.getPlugin(PlayerKitsPlugin.class).getLogger().log(Level.SEVERE, "Unable to load item stacks.", e);
+            JavaPlugin.getPlugin(PlayerKitsPlugin.class).getLogger().log(Level.SEVERE, "Unable to load item stacks.", e);
         }
         return itemStacks;
     }
@@ -51,7 +53,7 @@ public final class InventoryUtil {
             serializeInventory(items, outputStream);
             data = Base64Coder.encodeLines(outputStream.toByteArray());
         } catch (IOException e) {
-            PlayerKitsPlugin.getPlugin(PlayerKitsPlugin.class).getLogger().log(Level.SEVERE, "Unable to save item stacks.", e);
+            JavaPlugin.getPlugin(PlayerKitsPlugin.class).getLogger().log(Level.SEVERE, "Unable to save item stacks.", e);
         }
         return data;
     }
@@ -62,7 +64,7 @@ public final class InventoryUtil {
         try (ByteArrayInputStream inputStream = new ByteArrayInputStream(Base64Coder.decodeLines(data))) {
             items = deserializeInventory(inputStream);
         } catch (IOException e) {
-            PlayerKitsPlugin.getPlugin(PlayerKitsPlugin.class).getLogger().log(Level.SEVERE, "Unable to load item stacks.", e);
+            JavaPlugin.getPlugin(PlayerKitsPlugin.class).getLogger().log(Level.SEVERE, "Unable to load item stacks.", e);
         }
         return items;
     }

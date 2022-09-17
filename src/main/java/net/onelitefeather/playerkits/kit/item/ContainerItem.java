@@ -54,6 +54,14 @@ public final class ContainerItem {
         return Objects.equals(displayName, that.displayName);
     }
 
+    @Override
+    public int hashCode() {
+        int result = material.hashCode();
+        result = 31 * result + displayName.hashCode();
+        result = 31 * result + (itemStack != null ? itemStack.hashCode() : 0);
+        return result;
+    }
+
     /**
      * @return the material of the item
      */
