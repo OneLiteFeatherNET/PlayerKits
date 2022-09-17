@@ -6,7 +6,7 @@ import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.util.UTF8ResourceBundleControl;
 import net.onelitefeather.playerkits.PlayerKitsPlugin;
 import net.onelitefeather.playerkits.kit.item.ContainerItem;
-import net.onelitefeather.playerkits.util.TimeUtil;
+import org.apache.commons.lang.time.DateUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -19,8 +19,8 @@ import java.util.ResourceBundle;
 
 public final class MessagesManager {
 
-    private static final SimpleDateFormat TIME_FORMAT = new SimpleDateFormat("HH:mm:ss");
-    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("dd.MM.yyyy");
+    private final SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy");
     private final ResourceBundle messages;
     private final List<Component> kitItemDescription;
 
@@ -87,7 +87,7 @@ public final class MessagesManager {
     @NotNull
     public String formatMillis(long millis) {
         Date date = new Date(millis);
-        String timeFormat = TIME_FORMAT.format(date);
-        return TimeUtil.isSameDay(new Date(), date) ? timeFormat : timeFormat + DATE_FORMAT.format(date);
+        String outputTimeFormat = this.timeFormat.format(date);
+        return DateUtils.isSameDay(new Date(), date) ? outputTimeFormat : outputTimeFormat + dateFormat.format(date);
     }
 }

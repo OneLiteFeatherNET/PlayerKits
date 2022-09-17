@@ -42,6 +42,7 @@ public record KitCommand(@NotNull PlayerKitsPlugin plugin, @NotNull PlayerKitMan
         player.openInventory(this.playerKitManager.getKitInventory());
     }
 
+    @SuppressWarnings("java:S107")
     @CommandMethod("playerkit create <name> <display> <inventoryIcon> <price> <visible> <cooldownTimeUnit> <cooldown>")
     @CommandPermission("playerkits.command.create")
     @CommandDescription("Create a new Kit")

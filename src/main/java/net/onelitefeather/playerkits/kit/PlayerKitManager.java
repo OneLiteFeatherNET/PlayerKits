@@ -40,7 +40,8 @@ public final class PlayerKitManager {
     private final List<PlayerKit> playerKitList;
     private final File playerKitsFile;
     private final Map<PlayerKit, ItemStack> displayItems;
-    private final Inventory kitPreviewInventory, kitInventory;
+    private final Inventory kitPreviewInventory;
+    private final Inventory kitInventory;
 
     public PlayerKitManager(@NotNull PlayerKitsPlugin plugin) {
 
@@ -259,12 +260,10 @@ public final class PlayerKitManager {
         if (!this.plugin.isSpecialPlayer(player)) return;
 
         var playerKit = getPlayerKit(DRACONIA_KIT_NAME);
-        if (playerKit != null) {
-            if (grantKit(player, playerKit, true) == KitGrantResult.SUCCESS) {
-                this.plugin.removeSpecialPlayer(player);
-                player.sendMessage(this.plugin.getMessagesManager().getMessageComponent("kit.grant.special",
-                        LegacyComponentSerializer.legacyAmpersand().serialize(player.displayName())));
-            }
+        if (playerKit != null && grantKit(player, playerKit, true) == KitGrantResult.SUCCESS) {
+            this.plugin.removeSpecialPlayer(player);
+            player.sendMessage(this.plugin.getMessagesManager().getMessageComponent("kit.grant.special",
+                    LegacyComponentSerializer.legacyAmpersand().serialize(player.displayName())));
         }
     }
 
