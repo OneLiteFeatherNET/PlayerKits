@@ -1,3 +1,9 @@
 include:
-  - template: Jobs/Dependency-Scanning.gitlab-ci.yml
-  - template: Security/Secret-Detection.gitlab-ci.yml
+  - project: onelitefeather/ci-template
+    ref: main
+    file: s3-upload.yaml
+
+variables:
+  JAR_FILE: "PlayerKits.jar"
+  BUCKET: "olf-dev"
+  TEMPLATE: "default"
