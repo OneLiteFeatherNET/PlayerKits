@@ -42,12 +42,12 @@ dependencies {
 
     liquibaseRuntime(libs.mariadbJavaClient)
 
-    liquibaseRuntime("org.liquibase:liquibase-core:3.10.3")
-    liquibaseRuntime("org.liquibase:liquibase-groovy-dsl:2.0.1")
-    liquibaseRuntime("ch.qos.logback:logback-core:1.2.3")
-    liquibaseRuntime("ch.qos.logback:logback-classic:1.2.3")
+    liquibaseRuntime("org.liquibase:liquibase-core:4.16.0")
+    liquibaseRuntime("org.liquibase:liquibase-groovy-dsl:3.0.2")
+    liquibaseRuntime("ch.qos.logback:logback-core:1.4.0")
+    liquibaseRuntime("ch.qos.logback:logback-classic:1.4.0")
     // Testing
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.6.0")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.0")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
 }
 java {
@@ -67,7 +67,7 @@ tasks {
     }
 
     runServer {
-        minecraftVersion("1.18.2")
+        minecraftVersion("1.19.2")
     }
 
     build {
@@ -84,7 +84,7 @@ bukkit {
         version =  "${rootProject.version}+${System.getenv("CI_COMMIT_SHORT_SHA")}"
     }
     main = "${rootProject.group}.playerkits.PlayerKitsPlugin"
-    apiVersion = "1.18"
+    apiVersion = "1.19"
     load = net.minecrell.pluginyml.bukkit.BukkitPluginDescription.PluginLoadOrder.POSTWORLD
 
     authors = listOf("UniqueGame", "OneLiteFeather")

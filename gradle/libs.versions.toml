@@ -15,7 +15,7 @@ liquibase = "2.1.0"
 # Chat
 adventure = "4.10.1"
 # Commands
-cloud = "1.6.2"
+cloud = "1.7.0"
 commodore = "1.13"
 # Database
 hibernate = "6.1.0.Final"

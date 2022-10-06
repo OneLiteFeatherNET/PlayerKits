@@ -17,6 +17,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.ResourceBundle;
 
+@SuppressWarnings("java:S2885")
 public final class MessagesManager {
 
     private final SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
@@ -70,6 +71,11 @@ public final class MessagesManager {
     @NotNull
     public String getMessage(@NotNull String key, @Nullable Object... parameters) {
         return this.messages.containsKey(key) ? MessageFormat.format(this.messages.getString(key), parameters) : String.format("N/A (%s)", key);
+    }
+
+    @NotNull
+    public String getPrefix() {
+        return this.messages.getString("prefix");
     }
 
     /**

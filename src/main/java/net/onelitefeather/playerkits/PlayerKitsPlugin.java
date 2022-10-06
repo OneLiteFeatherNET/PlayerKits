@@ -45,6 +45,7 @@ import java.util.logging.Logger;
 public class PlayerKitsPlugin extends JavaPlugin {
 
     private MinecraftHelp<CommandSender> minecraftHelp;
+
     private PlayerKitManager playerKitManager;
     private PlayerKitCooldownManager playerKitCooldownManager;
     private ItemRegistry itemRegistry;
@@ -58,8 +59,8 @@ public class PlayerKitsPlugin extends JavaPlugin {
         if (!isDebugEnabled()) {
             applyMigrations();
         }
-        buildSessionFactory();
 
+        buildSessionFactory();
         PluginManager pluginManager = getServer().getPluginManager();
 
         this.messagesManager = new MessagesManager(this);
@@ -106,30 +107,37 @@ public class PlayerKitsPlugin extends JavaPlugin {
     }
 
     private void buildCommandSystem() {
-        final PaperCommandManager<CommandSender> bukkitCommandManager;
 
         //Commands
         AnnotationParser<CommandSender> annotationParser;
+
         try {
-            bukkitCommandManager = new PaperCommandManager<>(this, CommandExecutionCoordinator.simpleCoordinator(), Function.identity(), Function.identity());
-            if (bukkitCommandManager.queryCapability(CloudBukkitCapabilities.BRIGADIER)) {
-                bukkitCommandManager.registerBrigadier();
+            PaperCommandManager<CommandSender> paperCommandManager = new PaperCommandManager<>(this,
+                    CommandExecutionCoordinator.simpleCoordinator(), Function.identity(), Function.identity());
+            if (paperCommandManager.hasCapability(CloudBukkitCapabilities.BRIGADIER)) {
+                paperCommandManager.registerBrigadier();
             }
 
-            if (bukkitCommandManager.queryCapability(CloudBukkitCapabilities.ASYNCHRONOUS_COMPLETION)) {
-                bukkitCommandManager.registerAsynchronousCompletions();
+            if (paperCommandManager.hasCapability(CloudBukkitCapabilities.ASYNCHRONOUS_COMPLETION)) {
+                paperCommandManager.registerAsynchronousCompletions();
             }
 
             final Function<ParserParameters, CommandMeta> commandMetaFunction = p -> CommandMeta.simple().with(CommandMeta.DESCRIPTION, p.get(StandardParameters.DESCRIPTION, "No description")).build();
-            annotationParser = new AnnotationParser<>(bukkitCommandManager, CommandSender.class, commandMetaFunction);
-            this.minecraftHelp = MinecraftHelp.createNative("/playerkits help", bukkitCommandManager);
+            annotationParser = new AnnotationParser<>(paperCommandManager, CommandSender.class, commandMetaFunction);
+            this.minecraftHelp = MinecraftHelp.createNative("/playerkits help", paperCommandManager);
+
         } catch (final Exception e) {
             this.getLogger().warning("Failed to initialize Brigadier support: " + e.getMessage());
             this.getServer().getPluginManager().disablePlugin(this);
             return;
         }
 
-        this.minecraftHelp.setHelpColors(MinecraftHelp.HelpColors.of(NamedTextColor.DARK_PURPLE, NamedTextColor.LIGHT_PURPLE, NamedTextColor.WHITE, NamedTextColor.GRAY, NamedTextColor.DARK_GRAY));
+        this.minecraftHelp.setHelpColors(MinecraftHelp.HelpColors.of(
+                NamedTextColor.DARK_PURPLE,
+                NamedTextColor.LIGHT_PURPLE,
+                NamedTextColor.WHITE,
+                NamedTextColor.GRAY,
+                NamedTextColor.DARK_GRAY));
         annotationParser.parse(new KitCommand(this, this.playerKitManager));
     }
 
