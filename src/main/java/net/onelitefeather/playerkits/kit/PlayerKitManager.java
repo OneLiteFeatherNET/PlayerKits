@@ -196,6 +196,7 @@ public final class PlayerKitManager {
         return KitGrantResult.SUCCESS;
     }
 
+    @SuppressWarnings("java:S1874")
     public void handleGrantKit(@NotNull CommandSender commandSender, @NotNull Player target,
                                @NotNull PlayerKit playerKit, boolean ignoreCooldown) {
 
@@ -215,7 +216,9 @@ public final class PlayerKitManager {
 
             case NOT_ENOUGH_SPACE ->
                     commandSender.sendMessage(this.plugin.getMessagesManager()
-                            .getMessageComponent("inventory.not-enough-space", displayName));
+                            .getMessageComponent("inventory.not-enough-space",
+                                    this.plugin.getMessagesManager().getPrefix(),
+                                    displayName));
 
             case SUCCESS -> {
 
@@ -233,22 +236,27 @@ public final class PlayerKitManager {
 
                 if (!commandSender.equals(target)) {
                     commandSender.sendMessage(this.plugin.getMessagesManager()
-                            .getMessageComponent("kit.grant.other.success", playerKit.getName(), displayName));
+                            .getMessageComponent("kit.grant.other.success",
+                                    this.plugin.getMessagesManager().getPrefix(),
+                                    playerKit.getName(), displayName));
                 }
 
                 target.sendMessage(this.plugin.getMessagesManager().getMessageComponent("kit.grant.success",
+                        this.plugin.getMessagesManager().getPrefix(),
                         playerKit.getName()));
             }
 
             case COOLDOWN_NOT_EXPIRED -> {
                 if (kitCooldown != null) {
                     commandSender.sendMessage(this.plugin.getMessagesManager()
-                            .getMessageComponent("cooldown-expires-at", playerKit.getName(),
-                            this.plugin.getMessagesManager().formatMillis(kitCooldown.getCooldown()), displayName));
+                            .getMessageComponent("cooldown-expires-at",
+                                    this.plugin.getMessagesManager().getPrefix(),
+                                    playerKit.getName(),
+                                    this.plugin.getMessagesManager().formatMillis(kitCooldown.getCooldown()),
+                                    displayName));
                 }
             }
         }
-
     }
 
     @Nullable
@@ -256,6 +264,7 @@ public final class PlayerKitManager {
         return this.displayItems.get(playerKit);
     }
 
+    @SuppressWarnings("java:S1874")
     public void grantSpecialKit(@NotNull Player player) {
         if (!this.plugin.isSpecialPlayer(player)) return;
 
@@ -263,6 +272,7 @@ public final class PlayerKitManager {
         if (playerKit != null && grantKit(player, playerKit, true) == KitGrantResult.SUCCESS) {
             this.plugin.removeSpecialPlayer(player);
             player.sendMessage(this.plugin.getMessagesManager().getMessageComponent("kit.grant.special",
+                    this.plugin.getMessagesManager().getPrefix(),
                     LegacyComponentSerializer.legacyAmpersand().serialize(player.displayName())));
         }
     }

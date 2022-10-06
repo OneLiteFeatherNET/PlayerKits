@@ -65,9 +65,11 @@ public record KitCommand(@NotNull PlayerKitsPlugin plugin, @NotNull PlayerKitMan
                 .build();
 
         if (this.playerKitManager.createPlayerKit(playerKit)) {
-            player.sendMessage(this.plugin.getMessagesManager().getMessageComponent("commands.playerkit.create.success", name));
+            player.sendMessage(this.plugin.getMessagesManager().getMessageComponent("commands.playerkit.create.success",
+                    this.plugin.getMessagesManager().getPrefix(), name));
         } else {
-            player.sendMessage(this.plugin.getMessagesManager().getMessageComponent("commands.playerkit.create.failure", name));
+            player.sendMessage(this.plugin.getMessagesManager().getMessageComponent("commands.playerkit.create.failure",
+                    this.plugin.getMessagesManager().getPrefix(), name));
         }
     }
 
@@ -76,7 +78,8 @@ public record KitCommand(@NotNull PlayerKitsPlugin plugin, @NotNull PlayerKitMan
     public void grantPlayerKit(CommandSender commandSender, @Argument(value = "player") Player player, @Argument(value = "kit", parserName = "playerKit") PlayerKit playerKit) {
 
         if (!this.playerKitManager.existsPlayerKit(playerKit.getName())) {
-            commandSender.sendMessage(this.plugin.getMessagesManager().getMessageComponent("kit.not-found", playerKit.getName()));
+            commandSender.sendMessage(this.plugin.getMessagesManager().getMessageComponent("kit.not-found",
+                    this.plugin.getMessagesManager().getPrefix(), playerKit.getName()));
             return;
         }
 
@@ -91,9 +94,11 @@ public record KitCommand(@NotNull PlayerKitsPlugin plugin, @NotNull PlayerKitMan
 
         String name = playerKit.getName();
         if (this.playerKitManager.deleteKit(playerKit)) {
-            commandSender.sendMessage(this.plugin.getMessagesManager().getMessageComponent("commands.playerkit.delete.success", name));
+            commandSender.sendMessage(this.plugin.getMessagesManager().getMessageComponent("commands.playerkit.delete.success",
+                    this.plugin.getMessagesManager().getPrefix(), name));
         } else {
-            commandSender.sendMessage(this.plugin.getMessagesManager().getMessageComponent("commands.playerkit.delete.failure", name));
+            commandSender.sendMessage(this.plugin.getMessagesManager().getMessageComponent("commands.playerkit.delete.failure",
+                    this.plugin.getMessagesManager().getPrefix(), name));
         }
     }
 
