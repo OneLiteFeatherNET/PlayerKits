@@ -38,6 +38,8 @@ public class PlayerKitsPlugin extends JavaPlugin {
 
         PluginManager pluginManager = getServer().getPluginManager();
 
+        this.i18nLocaleService = new I18nLocaleService(this);
+        this.itemRegistry = new ItemRegistry(this);
         this.playerKitSetupService = new PlayerKitSetupService(this);
         this.playerKitService = new PlayerKitService(this);
         this.playerKitCooldownService = new PlayerKitCooldownService(this);
@@ -45,8 +47,6 @@ public class PlayerKitsPlugin extends JavaPlugin {
         this.paperCommandService = new PaperCommandService(this);
         this.paperCommandService.registerCommands();
 
-        this.i18nLocaleService = new I18nLocaleService(this);
-        this.itemRegistry = new ItemRegistry(this);
 
         pluginManager.registerEvents(new InventoryListener(this, this.playerKitService, this.playerKitCooldownService), this);
         pluginManager.registerEvents(new PlayerConnectionListener(this, this.playerKitService), this);
