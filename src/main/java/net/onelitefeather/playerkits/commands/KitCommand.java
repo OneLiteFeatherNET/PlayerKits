@@ -6,13 +6,13 @@ import cloud.commandframework.annotations.CommandMethod;
 import cloud.commandframework.annotations.CommandPermission;
 import cloud.commandframework.annotations.parsers.Parser;
 import cloud.commandframework.annotations.specifier.Greedy;
-import cloud.commandframework.annotations.specifier.Quoted;
 import cloud.commandframework.annotations.suggestions.Suggestions;
 import cloud.commandframework.context.CommandContext;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.onelitefeather.playerkits.PlayerKitsPlugin;
 import net.onelitefeather.playerkits.kit.PlayerKit;
-import net.onelitefeather.playerkits.kit.PlayerKitManager;
-import net.onelitefeather.playerkits.kit.item.ContainerItem;
+import net.onelitefeather.playerkits.service.PlayerKitService;
+import net.onelitefeather.playerkits.kit.property.PlayerKitProperty;
 import net.onelitefeather.playerkits.util.InventoryUtil;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
@@ -22,9 +22,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Queue;
-import java.util.concurrent.TimeUnit;
 
-public record KitCommand(@NotNull PlayerKitsPlugin plugin, @NotNull PlayerKitManager playerKitManager) {
+public record KitCommand(@NotNull PlayerKitsPlugin plugin, @NotNull PlayerKitService playerKitService) {
 
     private static final String DUMMY_ITEMS = InventoryUtil.serializeInventoryToString(new ItemStack[]{new ItemStack(Material.STONE)});
 
@@ -39,51 +38,20 @@ public record KitCommand(@NotNull PlayerKitsPlugin plugin, @NotNull PlayerKitMan
     @CommandDescription("Open the kits overview")
     @CommandPermission("playerkits.command.kits")
     public void execute(@NotNull Player player) {
-        player.openInventory(this.playerKitManager.getKitInventory());
-    }
-
-    @SuppressWarnings("java:S107")
-    @CommandMethod("playerkit create <name> <display> <inventoryIcon> <price> <visible> <cooldownTimeUnit> <cooldown>")
-    @CommandPermission("playerkits.command.create")
-    @CommandDescription("Create a new Kit")
-    public void createKitCommand(@NotNull Player player,
-                                 @NotNull @Argument(value = "name") String name,
-                                 @NotNull @Argument(value = "display") @Quoted String display,
-                                 @NotNull @Argument(value = "inventoryIcon") Material inventoryIcon,
-                                 @NotNull @Argument(value = "price") Double price,
-                                 @NotNull @Argument(value = "visible") Boolean visible,
-                                 @NotNull @Argument(value = "cooldownTimeUnit") TimeUnit timeUnit,
-                                 @NotNull @Argument(value = "cooldown") Long cooldownTime) {
-
-        PlayerKit playerKit = new PlayerKit.PlayerKitBuilder(this.playerKitManager.getLastKitId() + 1, name)
-                .withContainerItem(new ContainerItem.ContainerItemBuilder().withMaterial(inventoryIcon).withDisplayName(display).build())
-                .withPrice(price)
-                .content(player.getInventory().getContents())
-                .visible(visible)
-                .cooldownTimeUnit(timeUnit)
-                .cooldownTime(cooldownTime)
-                .build();
-
-        if (this.playerKitManager.createPlayerKit(playerKit)) {
-            player.sendMessage(this.plugin.getMessagesManager().getMessageComponent("commands.playerkit.create.success",
-                    this.plugin.getMessagesManager().getPrefix(), name));
-        } else {
-            player.sendMessage(this.plugin.getMessagesManager().getMessageComponent("commands.playerkit.create.failure",
-                    this.plugin.getMessagesManager().getPrefix(), name));
-        }
+        player.openInventory(this.playerKitService.getKitInventory());
     }
 
     @CommandMethod("playerkit give <player> <kit>")
     @CommandPermission("playerkits.command.give")
     public void grantPlayerKit(CommandSender commandSender, @Argument(value = "player") Player player, @Argument(value = "kit", parserName = "playerKit") PlayerKit playerKit) {
 
-        if (!this.playerKitManager.existsPlayerKit(playerKit.getName())) {
-            commandSender.sendMessage(this.plugin.getMessagesManager().getMessageComponent("kit.not-found",
-                    this.plugin.getMessagesManager().getPrefix(), playerKit.getName()));
+        if (!this.playerKitService.existsPlayerKit(playerKit.getName())) {
+            commandSender.sendMessage(MiniMessage.miniMessage().deserialize(this.plugin.i18n().getMessage("kit.not-found",
+                    this.plugin.i18n().getPrefix(), playerKit.getName())));
             return;
         }
 
-        this.playerKitManager.handleGrantKit(commandSender, player, playerKit, true);
+        this.playerKitService.handleGrantKit(commandSender, player, playerKit, true);
     }
 
     @CommandMethod("playerkit delete <name>")
@@ -93,22 +61,22 @@ public record KitCommand(@NotNull PlayerKitsPlugin plugin, @NotNull PlayerKitMan
                                  @NotNull @Argument(value = "name", parserName = "playerKit") PlayerKit playerKit) {
 
         String name = playerKit.getName();
-        if (this.playerKitManager.deleteKit(playerKit)) {
-            commandSender.sendMessage(this.plugin.getMessagesManager().getMessageComponent("commands.playerkit.delete.success",
-                    this.plugin.getMessagesManager().getPrefix(), name));
+        if (this.playerKitService.deleteKit(playerKit)) {
+            commandSender.sendMessage(MiniMessage.miniMessage().deserialize(
+                    this.plugin.i18n().getMessage("commands.playerkit.delete.success", this.plugin.i18n().getPrefix(), name)));
         } else {
-            commandSender.sendMessage(this.plugin.getMessagesManager().getMessageComponent("commands.playerkit.delete.failure",
-                    this.plugin.getMessagesManager().getPrefix(), name));
+            commandSender.sendMessage(MiniMessage.miniMessage().deserialize(this.plugin.i18n().getMessage("commands.playerkit.delete.failure", this.plugin.i18n().getPrefix(), name)));
         }
     }
 
     @Parser(name = "playerKit", suggestions = "playerKits")
     public @NotNull PlayerKit parsePlayerKit(CommandContext<CommandSender> commandSender, @NotNull Queue<String> input) {
-        var name = input.remove();
-        var playerKit = this.playerKitManager.getPlayerKit(name);
 
-        if(playerKit == null) {
-            playerKit = new PlayerKit(99, name, new ContainerItem(Material.AIR, "dummy"), DUMMY_ITEMS, 0, false, TimeUnit.DAYS, -1);
+        var name = input.remove();
+        var playerKit = this.playerKitService.getPlayerKit(name);
+
+        if (playerKit == null) {
+            playerKit = new PlayerKit(name, DUMMY_ITEMS, PlayerKitProperty.DEFAULTS);
         }
 
         return playerKit;
@@ -117,6 +85,6 @@ public record KitCommand(@NotNull PlayerKitsPlugin plugin, @NotNull PlayerKitMan
     @NotNull
     @Suggestions("playerKits")
     public List<String> getKitNames(@NotNull CommandContext<CommandSender> context, @NotNull String input) {
-        return this.playerKitManager.getPlayerKitNames();
+        return this.playerKitService.getPlayerKitNames();
     }
 }
