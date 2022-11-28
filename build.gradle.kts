@@ -10,8 +10,6 @@ plugins {
 group = "net.onelitefeather"
 version = "1.0.0"
 
-val cloudNetVersion = "3.4.4-RELEASE"
-
 repositories {
     mavenCentral()
     maven(url = uri("https://papermc.io/repo/repository/maven-public/"))
@@ -29,10 +27,9 @@ dependencies {
     // Paper
     compileOnly(libs.paper)
 
-    implementation(libs.bundles.hibernate)
-
-    implementation(libs.liquibaseCore)
-//    implementation(libs.liquibaseHibernate5)
+    implementation("org.hibernate:hibernate-core:6.1.5.Final")
+    implementation("org.mariadb.jdbc:mariadb-java-client:3.0.6")
+    implementation("org.hibernate.orm:hibernate-hikaricp:6.1.5.Final")
 
     // Commands
     implementation(libs.bundles.cloud)
@@ -40,12 +37,6 @@ dependencies {
         isTransitive = false
     }
 
-    liquibaseRuntime(libs.mariadbJavaClient)
-
-    liquibaseRuntime("org.liquibase:liquibase-core:4.16.0")
-    liquibaseRuntime("org.liquibase:liquibase-groovy-dsl:3.0.2")
-    liquibaseRuntime("ch.qos.logback:logback-core:1.4.0")
-    liquibaseRuntime("ch.qos.logback:logback-classic:1.4.0")
     // Testing
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.0")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
