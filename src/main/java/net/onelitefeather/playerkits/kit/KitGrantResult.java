@@ -4,5 +4,5 @@ public enum KitGrantResult {
 
     SUCCESS,
     NOT_ENOUGH_SPACE,
-    COOLDOWN_NOT_EXPIRED;
+    COOLDOWN_NOT_EXPIRED
 }
