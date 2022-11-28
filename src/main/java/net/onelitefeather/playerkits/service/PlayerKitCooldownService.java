@@ -1,7 +1,8 @@
-package net.onelitefeather.playerkits.kit.cooldown;
+package net.onelitefeather.playerkits.service;
 
 import net.onelitefeather.playerkits.PlayerKitsPlugin;
 import net.onelitefeather.playerkits.kit.PlayerKit;
+import net.onelitefeather.playerkits.kit.cooldown.PlayerKitCooldown;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.jetbrains.annotations.NotNull;
@@ -13,13 +14,13 @@ import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 
-public final class PlayerKitCooldownManager {
+public final class PlayerKitCooldownService {
 
     public static final long NO_COOLDOWN = -1;
     private final PlayerKitsPlugin plugin;
     private final List<PlayerKitCooldown> playerKitCooldowns;
 
-    public PlayerKitCooldownManager(@NotNull PlayerKitsPlugin plugin) {
+    public PlayerKitCooldownService(@NotNull PlayerKitsPlugin plugin) {
         this.plugin = plugin;
         this.playerKitCooldowns = new ArrayList<>();
         load(this.playerKitCooldowns::addAll);
@@ -40,7 +41,7 @@ public final class PlayerKitCooldownManager {
     public void load(@NotNull Consumer<List<PlayerKitCooldown>> consumer) {
         List<PlayerKitCooldown> kitCooldowns = new ArrayList<>();
 
-        try (Session session = this.plugin.getSessionFactory().openSession()) {
+        try (Session session = this.plugin.getDatabaseService().getSessionFactory().openSession()) {
             session.beginTransaction();
             var query = session.createQuery("SELECT kd FROM PlayerKitCooldown kd", PlayerKitCooldown.class);
             kitCooldowns.addAll(query.list());
@@ -60,7 +61,7 @@ public final class PlayerKitCooldownManager {
 
         if (!exists(playerKitCooldown)) {
             this.playerKitCooldowns.add(playerKitCooldown);
-            try (Session session = this.plugin.getSessionFactory().openSession()) {
+            try (Session session = this.plugin.getDatabaseService().getSessionFactory().openSession()) {
                 session.beginTransaction();
                 session.persist(playerKitCooldown);
                 session.getTransaction().commit();
@@ -71,11 +72,11 @@ public final class PlayerKitCooldownManager {
     }
 
     public boolean exists(PlayerKitCooldown playerKitCooldown) {
-        try (Session session = this.plugin.getSessionFactory().openSession()) {
-            var kitCooldown = session.createQuery("SELECT kdc FROM PlayerKitCooldown kdc WHERE playerId = :playerId AND kitId = :kitId", PlayerKitCooldown.class);
+        try (Session session = this.plugin.getDatabaseService().getSessionFactory().openSession()) {
+            var kitCooldown = session.createQuery("SELECT kdc FROM PlayerKitCooldown kdc WHERE kdc.playerId = :playerId AND kdc.kitName = :name", PlayerKitCooldown.class);
             kitCooldown.setMaxResults(1);
             kitCooldown.setParameter("playerId", playerKitCooldown.getPlayerId().toString());
-            kitCooldown.setParameter("kitId", playerKitCooldown.getKitId());
+            kitCooldown.setParameter("name", playerKitCooldown.getKitName());
             return kitCooldown.uniqueResult() != null;
         } catch (HibernateException e) {
             this.plugin.getLogger().log(Level.SEVERE, "Something went wrong!", e);
@@ -87,16 +88,16 @@ public final class PlayerKitCooldownManager {
      * Remove a {@link PlayerKitCooldown}
      *
      * @param playerId the playerId
-     * @param kitId    the kitId
+     * @param name the name
      */
-    public void removeCooldown(@NotNull UUID playerId, long kitId) {
+    public void removeCooldown(@NotNull UUID playerId, String name) {
 
-        PlayerKitCooldown playerKitCooldown = getPlayerKitCooldown(playerId, kitId);
+        PlayerKitCooldown playerKitCooldown = getPlayerKitCooldown(playerId, name);
         if (playerKitCooldown == null) return;
         if (!playerKitCooldown.expired()) return;
 
         if (exists(playerKitCooldown)) {
-            try (Session session = this.plugin.getSessionFactory().openSession()) {
+            try (Session session = this.plugin.getDatabaseService().getSessionFactory().openSession()) {
                 session.beginTransaction();
                 session.remove(playerKitCooldown);
                 session.getTransaction().commit();
@@ -109,18 +110,18 @@ public final class PlayerKitCooldownManager {
 
     /**
      * @param playerId the player who claimed the {@link PlayerKit}
-     * @param kitId    the id of the {@link PlayerKit}
+     * @param name the name of the {@link PlayerKit}
      * @return the {@link PlayerKitCooldown} by the given playerId and kitId
      */
     @Nullable
-    public PlayerKitCooldown getPlayerKitCooldown(@NotNull UUID playerId, long kitId) {
+    public PlayerKitCooldown getPlayerKitCooldown(@NotNull UUID playerId, String name) {
 
         PlayerKitCooldown playerKitCooldown = null;
         List<PlayerKitCooldown> kitCooldowns = this.getPlayerKitCooldowns();
 
         for (int i = 0; i < kitCooldowns.size() && playerKitCooldown == null; i++) {
             PlayerKitCooldown kitCooldown = kitCooldowns.get(i);
-            if (kitCooldown.getPlayerId().equals(playerId) && kitCooldown.getKitId() == kitId) {
+            if (kitCooldown.getPlayerId().equals(playerId) && kitCooldown.getKitName().equals(name)) {
                 playerKitCooldown = kitCooldown;
             }
         }
@@ -129,18 +130,18 @@ public final class PlayerKitCooldownManager {
     }
 
     /**
-     * @param kitId the id of the {@link PlayerKit}
+     * @param name the name of the {@link PlayerKit}
      * @return the {@link PlayerKitCooldown} by the given kitId
      */
     @Nullable
-    public PlayerKitCooldown getPlayerKitCooldown(long kitId) {
+    public PlayerKitCooldown getPlayerKitCooldown(String name) {
 
         PlayerKitCooldown playerKitCooldown = null;
 
         List<PlayerKitCooldown> kitCooldowns = this.getPlayerKitCooldowns();
         for (int i = 0; i < kitCooldowns.size() && playerKitCooldown == null; i++) {
             PlayerKitCooldown kitCooldown = kitCooldowns.get(i);
-            if (kitCooldown.getKitId() == kitId) {
+            if (kitCooldown.getKitName().equalsIgnoreCase(name)) {
                 playerKitCooldown = kitCooldown;
             }
         }
