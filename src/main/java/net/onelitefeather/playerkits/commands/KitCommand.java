@@ -31,7 +31,7 @@ public record KitCommand(@NotNull PlayerKitsPlugin plugin, @NotNull PlayerKitSer
     @CommandMethod("playerkits help [query]")
     @CommandPermission("orion.command.help")
     private void helpCommand(CommandSender sender, final @Argument("query") @Greedy String query) {
-        this.plugin.getMinecraftHelp().queryCommands(query == null ? "" : query, sender);
+        this.plugin.getPaperCommandService().getMinecraftHelp().queryCommands(query == null ? "" : query, sender);
     }
 
     @CommandMethod("kits")
