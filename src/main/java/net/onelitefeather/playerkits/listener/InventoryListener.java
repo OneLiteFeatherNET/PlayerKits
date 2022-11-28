@@ -1,72 +1,93 @@
 package net.onelitefeather.playerkits.listener;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.onelitefeather.playerkits.PlayerKitsPlugin;
 import net.onelitefeather.playerkits.kit.PlayerKit;
-import net.onelitefeather.playerkits.kit.PlayerKitManager;
-import net.onelitefeather.playerkits.kit.cooldown.PlayerKitCooldownManager;
+import net.onelitefeather.playerkits.service.PlayerKitCooldownService;
+import net.onelitefeather.playerkits.service.PlayerKitService;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryType;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 
-public record InventoryListener(@NotNull PlayerKitsPlugin plugin, @NotNull PlayerKitManager playerKitManager,
-                                @NotNull PlayerKitCooldownManager cooldownManager) implements Listener {
+import java.util.function.Consumer;
+
+public record InventoryListener(@NotNull PlayerKitsPlugin plugin, @NotNull PlayerKitService playerKitService,
+                                @NotNull PlayerKitCooldownService cooldownManager) implements Listener {
+
+    @EventHandler
+    public void handlePreviewInventoryClick(InventoryClickEvent event) {
+
+        if (!(event.getWhoClicked() instanceof Player player)) return;
+
+        ItemStack currentItem = event.getCurrentItem();
+        if (currentItem == null) return;
+
+        if (event.getView().getTopInventory().equals(this.playerKitService.getKitPreviewInventory())) {
+            event.setCancelled(true);
+
+            if (currentItem.isSimilar(this.plugin.getItemRegistry().getItem(currentItem))) {
+                player.openInventory(this.playerKitService.getKitInventory());
+            }
+        }
+    }
 
     @EventHandler
     private void handleClick(InventoryClickEvent event) {
 
-        if (event.getWhoClicked() instanceof Player player) {
-            if (event.getSlotType() != InventoryType.SlotType.CONTAINER) return;
+        if (event.getWhoClicked() instanceof Player player && event.getView().getTopInventory().equals(this.playerKitService.getKitInventory())) {
 
-            Inventory clickedInventory = event.getClickedInventory();
+            event.setCancelled(true);
+
+            var clickedInventory = event.getClickedInventory();
             if (clickedInventory == null) return;
 
-            ItemStack currentItem = event.getCurrentItem();
-            if (currentItem == null) return;
+            if (clickedInventory.equals(this.playerKitService.getKitInventory())) {
+                ItemStack currentItem = event.getCurrentItem();
+                if (currentItem == null) return;
 
-            if (clickedInventory.equals(this.playerKitManager.getKitPreviewInventory())) {
-                event.setCancelled(true);
-
-                if (currentItem.isSimilar(this.plugin.getItemRegistry().getItem(currentItem))) {
-                    player.openInventory(this.playerKitManager.getKitInventory());
-                    return;
-                }
+                getPlayerKit(currentItem, playerKit -> {
+                    if (playerKit != null) {
+                        handleInventoryClick(player, playerKit, event.getClick());
+                    } else {
+                        player.sendMessage(MiniMessage.miniMessage().deserialize(
+                                this.plugin.i18n().getMessage("kit.not-found", this.plugin.i18n().getPrefix(),
+                                        PlainTextComponentSerializer.plainText().serialize(getDisplayName(currentItem)))));
+                    }
+                });
             }
+        }
+    }
 
-            if (clickedInventory.equals(this.plugin.getPlayerKitManager().getKitInventory())) {
+    private void getPlayerKit(@NotNull ItemStack currentItem, Consumer<PlayerKit> consumer) {
+        consumer.accept(this.playerKitService.getPlayerKit(currentItem));
+    }
 
-                event.setCancelled(true);
 
-                ItemMeta itemMeta = currentItem.getItemMeta();
-                if (itemMeta == null) return;
+    @NotNull
+    private Component getDisplayName(@NotNull ItemStack itemStack) {
 
-                Component displayNameComp = itemMeta.displayName();
-                if (displayNameComp == null) return;
+        var itemMeta = itemStack.getItemMeta();
+        if (itemMeta == null) return itemStack.displayName();
 
-                PlayerKit playerKit = this.playerKitManager.getPlayerKit(currentItem);
-                if (playerKit == null) {
-                    player.sendMessage(this.plugin.getMessagesManager().getMessageComponent("kit.not-found", PlainTextComponentSerializer.plainText().serialize(displayNameComp)));
-                    return;
-                }
+        var displayName = itemMeta.displayName();
+        return displayName != null ? displayName : itemStack.displayName();
+    }
 
-                ClickType clickType = event.getClick();
-                if (clickType.isLeftClick()) {
-                    this.playerKitManager.handleGrantKit(player, player, playerKit, false);
-                    player.closeInventory();
-                }
+    private void handleInventoryClick(@NotNull Player player, @NotNull PlayerKit playerKit, ClickType clickType) {
 
-                if (clickType.isRightClick()) {
-                    this.playerKitManager.previewKit(player, playerKit);
-                }
-            }
+        if (clickType.isLeftClick()) {
+            this.playerKitService.handleGrantKit(player, player, playerKit, false);
+            player.closeInventory();
+        }
+
+        if (clickType.isRightClick()) {
+            this.playerKitService.previewKit(player, playerKit);
         }
     }
 }
