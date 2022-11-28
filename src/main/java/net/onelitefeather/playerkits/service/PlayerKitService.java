@@ -1,15 +1,17 @@
-package net.onelitefeather.playerkits.kit;
+package net.onelitefeather.playerkits.service;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.onelitefeather.playerkits.PlayerKitsPlugin;
+import net.onelitefeather.playerkits.kit.KitGrantResult;
+import net.onelitefeather.playerkits.kit.PlayerKit;
 import net.onelitefeather.playerkits.kit.cooldown.PlayerKitCooldown;
-import net.onelitefeather.playerkits.kit.cooldown.PlayerKitCooldownManager;
+import net.onelitefeather.playerkits.kit.property.PlayerKitProperty;
 import net.onelitefeather.playerkits.registry.ItemRegistry;
 import net.onelitefeather.playerkits.util.InventoryUtil;
-import net.onelitefeather.playerkits.util.TimeUtil;
+import org.apache.commons.lang.NotImplementedException;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -22,13 +24,11 @@ import org.jetbrains.annotations.Nullable;
 import java.io.*;
 import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 
-public final class PlayerKitManager {
+public final class PlayerKitService {
 
     public static final String DRACONIA_KIT_NAME = "draconia_kit";
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().excludeFieldsWithoutExposeAnnotation().serializeNulls().create();
@@ -39,15 +39,13 @@ public final class PlayerKitManager {
     private final PlayerKitsPlugin plugin;
     private final List<PlayerKit> playerKitList;
     private final File playerKitsFile;
-    private final Map<PlayerKit, ItemStack> displayItems;
     private final Inventory kitPreviewInventory;
     private final Inventory kitInventory;
 
-    public PlayerKitManager(@NotNull PlayerKitsPlugin plugin) {
+    public PlayerKitService(@NotNull PlayerKitsPlugin plugin) {
 
         this.plugin = plugin;
         this.playerKitList = new ArrayList<>();
-        this.displayItems = new HashMap<>();
         this.playerKitsFile = new File(plugin.getDataFolder(), FILE_NAME);
 
         if (!this.playerKitsFile.exists()) {
@@ -70,13 +68,15 @@ public final class PlayerKitManager {
             this.kitInventory.setItem(border, BORDER_ITEM);
         }
 
-        loadPlayerKits(playerKits -> {
+        load();
+    }
 
+    private void load() {
+        loadPlayerKits(playerKits -> {
             for (PlayerKit playerKit : playerKits) {
-                if (!playerKit.isVisible()) continue;
-                ItemStack displayItem = buildDisplayItem(playerKit);
-                this.displayItems.put(playerKit, displayItem);
-                this.kitInventory.addItem(displayItem);
+                if (!playerKit.getPropertyValue(PlayerKitProperty.VISIBLE, Boolean.class)) continue;
+                playerKit.setContent(InventoryUtil.deserializeInventoryFromString(playerKit.getItems()));
+                this.kitInventory.addItem(playerKit.setGuiItem(this.plugin.i18n().getKitItemDescription()));
             }
 
             this.playerKitList.addAll(playerKits);
@@ -91,11 +91,6 @@ public final class PlayerKitManager {
     @NotNull
     public List<PlayerKit> getPlayerKitList() {
         return playerKitList;
-    }
-
-    @NotNull
-    public Map<PlayerKit, ItemStack> getDisplayItems() {
-        return displayItems;
     }
 
     @NotNull
@@ -134,13 +129,7 @@ public final class PlayerKitManager {
     public boolean deleteKit(@NotNull PlayerKit playerKit) {
 
         try (FileWriter fileWriter = new FileWriter(this.playerKitsFile)) {
-
-            var itemStack = this.displayItems.get(playerKit);
-            if (itemStack != null) {
-                this.displayItems.remove(playerKit);
-                this.kitInventory.remove(itemStack);
-            }
-
+            this.kitInventory.remove(playerKit.getGuiItem());
             this.playerKitList.remove(playerKit);
             fileWriter.write(GSON.toJson(this.playerKitList));
         } catch (IOException e) {
@@ -158,11 +147,8 @@ public final class PlayerKitManager {
     public boolean createPlayerKit(@NotNull PlayerKit playerKit) {
         if (existsPlayerKit(playerKit.getName())) return false;
 
-        var displayItem = buildDisplayItem(playerKit);
-
-        if (playerKit.isVisible()) {
-            this.getDisplayItems().put(playerKit, displayItem);
-            this.kitInventory.addItem(displayItem);
+        if (playerKit.getPropertyValue(PlayerKitProperty.VISIBLE, Boolean.class)) {
+            this.kitInventory.addItem(playerKit.setGuiItem(this.plugin.i18n().getKitItemDescription()));
         }
 
         this.playerKitList.add(playerKit);
@@ -174,9 +160,9 @@ public final class PlayerKitManager {
     @NotNull
     public KitGrantResult grantKit(@NotNull Player player, @NotNull PlayerKit playerKit, boolean ignoreCooldown) {
 
-        if (!this.plugin.getCooldownManager()
-                .isCooldownExpired(this.plugin.getCooldownManager()
-                        .getPlayerKitCooldown(player.getUniqueId(), playerKit.getId())) && !ignoreCooldown) {
+        if (!this.plugin.getCooldownService()
+                .isCooldownExpired(this.plugin.getCooldownService()
+                        .getPlayerKitCooldown(player.getUniqueId(), playerKit.getName())) && !ignoreCooldown) {
             return KitGrantResult.COOLDOWN_NOT_EXPIRED;
         }
 
@@ -200,13 +186,13 @@ public final class PlayerKitManager {
     public void handleGrantKit(@NotNull CommandSender commandSender, @NotNull Player target,
                                @NotNull PlayerKit playerKit, boolean ignoreCooldown) {
 
-        var kitCooldown = this.plugin.getCooldownManager()
-                .getPlayerKitCooldown(target.getUniqueId(), playerKit.getId());
+        var kitCooldown = this.plugin.getCooldownService()
+                .getPlayerKitCooldown(target.getUniqueId(), playerKit.getName());
 
         var result = grantKit(target, playerKit, ignoreCooldown);
 
-        if (this.plugin.getCooldownManager().isCooldownExpired(kitCooldown)) {
-            this.plugin.getCooldownManager().removeCooldown(target.getUniqueId(), playerKit.getId());
+        if (this.plugin.getCooldownService().isCooldownExpired(kitCooldown)) {
+            this.plugin.getCooldownService().removeCooldown(target.getUniqueId(), playerKit.getName());
         }
 
         var displayName = MiniMessage.miniMessage().serialize(LegacyComponentSerializer.legacyAmpersand()
@@ -214,11 +200,10 @@ public final class PlayerKitManager {
 
         switch (result) {
 
-            case NOT_ENOUGH_SPACE ->
-                    commandSender.sendMessage(this.plugin.getMessagesManager()
-                            .getMessageComponent("inventory.not-enough-space",
-                                    this.plugin.getMessagesManager().getPrefix(),
-                                    displayName));
+            case NOT_ENOUGH_SPACE -> commandSender.sendMessage(MiniMessage.miniMessage().deserialize(this.plugin.i18n()
+                    .getMessage("inventory.not-enough-space",
+                            this.plugin.i18n().getPrefix(),
+                            displayName)));
 
             case SUCCESS -> {
 
@@ -226,42 +211,34 @@ public final class PlayerKitManager {
                     target.getInventory().addItem(itemStack);
                 }
 
-                if (playerKit.getCooldownTime() != PlayerKitCooldownManager.NO_COOLDOWN && !ignoreCooldown) {
-                    kitCooldown = new PlayerKitCooldown.Builder(playerKit.getId())
-                            .cooldown(TimeUtil.getCooldownTime(playerKit.getCooldownTimeUnit(),
-                                    playerKit.getCooldownTime()))
-                            .playerId(target.getUniqueId()).build();
-                    this.plugin.getCooldownManager().createKitCooldown(kitCooldown);
+                if (playerKit.getCooldownTime() != PlayerKitCooldownService.NO_COOLDOWN && !ignoreCooldown) {
+                    kitCooldown = new PlayerKitCooldown.Builder(playerKit.getName()).playerId(target.getUniqueId()).build();
+                    this.plugin.getCooldownService().createKitCooldown(kitCooldown);
                 }
 
                 if (!commandSender.equals(target)) {
-                    commandSender.sendMessage(this.plugin.getMessagesManager()
-                            .getMessageComponent("kit.grant.other.success",
-                                    this.plugin.getMessagesManager().getPrefix(),
-                                    playerKit.getName(), displayName));
+                    commandSender.sendMessage(MiniMessage.miniMessage().deserialize(this.plugin.i18n().
+                            getMessage("kit.grant.other.success", this.plugin.i18n().getPrefix(), playerKit.getName(), displayName)));
                 }
 
-                target.sendMessage(this.plugin.getMessagesManager().getMessageComponent("kit.grant.success",
-                        this.plugin.getMessagesManager().getPrefix(),
-                        playerKit.getName()));
+                target.sendMessage(MiniMessage.miniMessage().deserialize(this.plugin.i18n().getMessage("kit.grant.success",
+                        this.plugin.i18n().getPrefix(),
+                        playerKit.getName())));
             }
 
             case COOLDOWN_NOT_EXPIRED -> {
                 if (kitCooldown != null) {
-                    commandSender.sendMessage(this.plugin.getMessagesManager()
-                            .getMessageComponent("cooldown-expires-at",
-                                    this.plugin.getMessagesManager().getPrefix(),
+                    commandSender.sendMessage(MiniMessage.miniMessage().deserialize(this.plugin.i18n()
+                            .getMessage("cooldown-expires-at",
+                                    this.plugin.i18n().getPrefix(),
                                     playerKit.getName(),
-                                    this.plugin.getMessagesManager().formatMillis(kitCooldown.getCooldown()),
-                                    displayName));
+                                    this.plugin.i18n().formatMillis(kitCooldown.getCooldown()),
+                                    displayName)));
                 }
             }
-        }
-    }
 
-    @Nullable
-    public ItemStack getDisplayItem(@NotNull PlayerKit playerKit) {
-        return this.displayItems.get(playerKit);
+            default -> throw new NotImplementedException("Not implemented yet!");
+        }
     }
 
     @SuppressWarnings("java:S1874")
@@ -271,9 +248,9 @@ public final class PlayerKitManager {
         var playerKit = getPlayerKit(DRACONIA_KIT_NAME);
         if (playerKit != null && grantKit(player, playerKit, true) == KitGrantResult.SUCCESS) {
             this.plugin.removeSpecialPlayer(player);
-            player.sendMessage(this.plugin.getMessagesManager().getMessageComponent("kit.grant.special",
-                    this.plugin.getMessagesManager().getPrefix(),
-                    LegacyComponentSerializer.legacyAmpersand().serialize(player.displayName())));
+            player.sendMessage(MiniMessage.miniMessage().deserialize(this.plugin.i18n().getMessage("kit.grant.special",
+                    this.plugin.i18n().getPrefix(),
+                    LegacyComponentSerializer.legacyAmpersand().serialize(player.displayName()))));
         }
     }
 
@@ -301,24 +278,13 @@ public final class PlayerKitManager {
         List<PlayerKit> kitList = this.playerKitList;
 
         for (int i = 0; i < kitList.size() && playerKit == null; i++) {
-
             var kit = kitList.get(i);
-            var displayItem = getDisplayItem(kit);
-
-            if (displayItem == null) continue;
-            if (displayItem.isSimilar(itemStack)) {
+            if (kit.getGuiItem().isSimilar(itemStack)) {
                 playerKit = kit;
             }
         }
 
         return playerKit;
-
-    }
-
-    public long getLastKitId() {
-        List<PlayerKit> kits = this.getPlayerKitList();
-        if (kits.isEmpty()) return 0;
-        return kits.get(kits.size() - 1).getId();
     }
 
     @NotNull
@@ -330,13 +296,6 @@ public final class PlayerKitManager {
         }
 
         return kitNames;
-    }
-
-    @NotNull
-    private ItemStack buildDisplayItem(PlayerKit playerKit) {
-        var displayItem = playerKit.getContainerItem().toItemStack();
-        displayItem.lore(this.plugin.getMessagesManager().getKitItemDescription());
-        return displayItem;
     }
 
     private void updatePlayerKits() {
