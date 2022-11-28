@@ -6,6 +6,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.UUID;
 
 @Entity
+@Table
 public final class PlayerKitCooldown {
 
     @Id
@@ -19,15 +20,15 @@ public final class PlayerKitCooldown {
     private long cooldown;
 
     @Column
-    private long kitId;
+    private String kitName;
 
     public PlayerKitCooldown() {
     }
 
-    public PlayerKitCooldown(@NotNull UUID playerId, long cooldown, long kitId) {
+    public PlayerKitCooldown(@NotNull UUID playerId, long cooldown, String kitName) {
         this.playerId = playerId.toString();
         this.cooldown = cooldown;
-        this.kitId = kitId;
+        this.kitName = kitName;
     }
 
     public void setId(long id) {
@@ -54,12 +55,12 @@ public final class PlayerKitCooldown {
         this.cooldown = cooldown;
     }
 
-    public long getKitId() {
-        return kitId;
+    public String getKitName() {
+        return kitName;
     }
 
-    public void setKitId(long kitId) {
-        this.kitId = kitId;
+    public void setKitName(String kitName) {
+        this.kitName = kitName;
     }
 
     /**
@@ -74,18 +75,18 @@ public final class PlayerKitCooldown {
         return "PlayerKitCooldown{" +
                 "playerId=" + playerId +
                 ", cooldown=" + cooldown +
-                ", kitId=" + kitId +
+                ", kitName=" + kitName +
                 '}';
     }
 
     public static final class Builder {
 
-        private final long kitId;
+        private final String kitName;
         private long cooldown;
         private UUID playerId;
 
-        public Builder(long kitId) {
-            this.kitId = kitId;
+        public Builder(String kitName) {
+            this.kitName = kitName;
         }
 
         public Builder cooldown(long time) {
@@ -100,7 +101,7 @@ public final class PlayerKitCooldown {
 
         @NotNull
         public PlayerKitCooldown build() {
-            return new PlayerKitCooldown(playerId, cooldown, kitId);
+            return new PlayerKitCooldown(playerId, cooldown, kitName);
         }
 
 
