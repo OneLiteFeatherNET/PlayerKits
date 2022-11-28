@@ -64,20 +64,6 @@ public class KitSetupCommand {
         handleSetupFinish(commandSender, setup);
     }
 
-    @CommandMethod("playerkits setup finish <name>")
-    @CommandPermission("playerkits.command.setup")
-    public void executeSetupFinish(@NotNull CommandSender commandSender,
-                                   @NotNull @Argument(value = "name", suggestions = "setupNames") String name) {
-
-        var setup = plugin.getPlayerKitSetupService().getSetup(name);
-        if(setup == null) {
-
-            return;
-        }
-
-        handleSetupFinish(commandSender, setup);
-    }
-
     @CommandMethod("playerkits setup <name> <property> <value>")
     @CommandPermission("playerkits.command.setup")
     public void executeCommand(@NotNull CommandSender commandSender,
