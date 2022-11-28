@@ -1,11 +1,10 @@
-package net.onelitefeather.playerkits.language;
+package net.onelitefeather.playerkits.service;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.util.UTF8ResourceBundleControl;
 import net.onelitefeather.playerkits.PlayerKitsPlugin;
-import net.onelitefeather.playerkits.kit.item.ContainerItem;
 import org.apache.commons.lang.time.DateUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -18,14 +17,14 @@ import java.util.List;
 import java.util.ResourceBundle;
 
 @SuppressWarnings("java:S2885")
-public final class MessagesManager {
+public final class I18nLocaleService {
 
     private final SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy");
     private final ResourceBundle messages;
     private final List<Component> kitItemDescription;
 
-    public MessagesManager(@NotNull PlayerKitsPlugin playerKitsPlugin) {
+    public I18nLocaleService(@NotNull PlayerKitsPlugin playerKitsPlugin) {
         this.messages = ResourceBundle.getBundle("playerkits", new UTF8ResourceBundleControl());
 
         this.kitItemDescription = new ArrayList<>();
@@ -59,16 +58,6 @@ public final class MessagesManager {
      * @return the message
      */
     @NotNull
-    public Component getMessageComponent(@NotNull String key, @Nullable Object... parameters) {
-        return MiniMessage.miniMessage().deserialize(getMessage(key, parameters));
-    }
-
-    /**
-     * @param key        the key in the {@link ResourceBundle}
-     * @param parameters the placeholders to replace
-     * @return the message
-     */
-    @NotNull
     public String getMessage(@NotNull String key, @Nullable Object... parameters) {
         return this.messages.containsKey(key) ? MessageFormat.format(this.messages.getString(key), parameters) : String.format("N/A (%s)", key);
     }
@@ -78,9 +67,6 @@ public final class MessagesManager {
         return this.messages.getString("prefix");
     }
 
-    /**
-     * @return the lore for the {@link ContainerItem#toItemStack()}
-     */
     @NotNull
     public List<Component> getKitItemDescription() {
         return kitItemDescription;
