@@ -96,6 +96,10 @@ public final class PlayerKit {
     }
 
     public @Nullable ItemStack @NotNull [] getContent() {
+
+        if(this.content == null) {
+            this.content = InventoryUtil.deserializeInventoryFromString(this.items);
+        }
         return this.content;
     }
 
