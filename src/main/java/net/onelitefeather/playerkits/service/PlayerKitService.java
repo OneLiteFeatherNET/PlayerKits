@@ -2,6 +2,7 @@ package net.onelitefeather.playerkits.service;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.ToNumberPolicy;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.onelitefeather.playerkits.PlayerKitsPlugin;
@@ -31,7 +32,7 @@ import java.util.logging.Level;
 public final class PlayerKitService {
 
     public static final String DRACONIA_KIT_NAME = "draconia_kit";
-    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().excludeFieldsWithoutExposeAnnotation().serializeNulls().create();
+    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().setNumberToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE).excludeFieldsWithoutExposeAnnotation().serializeNulls().create();
     private static final int[] BORDERS = new int[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 36, 37, 38, 39, 40, 41, 42, 43, 44, 9, 18, 27, 17, 26, 35};
     private static final ItemStack BORDER_ITEM = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
     private static final String FILE_NAME = "playerKits.json";
