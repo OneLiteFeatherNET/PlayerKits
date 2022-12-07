@@ -32,11 +32,30 @@ public class PlayerKitSetup {
         this.name = name;
     }
 
-    public <T> PlayerKitProperty<T> addPropertyValue(@NotNull PlayerKitProperty<T> property) {
-        if (!this.kitPropertyList.contains(property)) {
-            this.kitPropertyList.add(property);
+
+    @SuppressWarnings("java:S1452")
+    @Nullable
+    public PlayerKitProperty<?> getKitProperty(@NotNull PlayerKitProperty.Type type) {
+
+        PlayerKitProperty<?> kitProperty = null;
+        for (int i = 0; i < this.kitPropertyList.size() && kitProperty == null; i++) {
+            var current = this.kitPropertyList.get(i);
+            if (current.getType() == type) {
+                kitProperty = current;
+            }
         }
 
+        return kitProperty;
+    }
+
+    public <T> PlayerKitProperty<T> addPropertyValue(@NotNull PlayerKitProperty<T> property) {
+
+        var kitProperty = getKitProperty(property.getType());
+        if (kitProperty != null) {
+            this.kitPropertyList.remove(kitProperty);
+        }
+
+        this.kitPropertyList.add(property);
         return property;
     }
 
