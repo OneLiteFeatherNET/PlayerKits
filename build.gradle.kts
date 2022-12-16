@@ -5,6 +5,8 @@ plugins {
     id("net.minecrell.plugin-yml.bukkit") version "0.5.1"
     id("xyz.jpenilla.run-paper") version "1.0.6"
     id("com.github.johnrengelman.shadow") version "7.1.2"
+    id("org.sonarqube") version "3.4.0.2513"
+    jacoco
 }
 
 group = "net.onelitefeather"
@@ -68,11 +70,21 @@ tasks {
     shadowJar {
         archiveFileName.set("${rootProject.name}.${archiveExtension.getOrElse("jar")}")
     }
+
+    jacocoTestReport {
+        dependsOn(rootProject.tasks.test)
+        reports {
+            xml.required.set(true)
+        }
+    }
+    getByName<org.sonarqube.gradle.SonarQubeTask>("sonarqube") {
+        dependsOn(rootProject.tasks.test)
+    }
 }
 
 bukkit {
     if (System.getenv().containsKey("CI")) {
-        version =  "${rootProject.version}+${System.getenv("CI_COMMIT_SHORT_SHA")}"
+        version = "${rootProject.version}+${System.getenv("CI_COMMIT_SHORT_SHA")}"
     }
     main = "${rootProject.group}.playerkits.PlayerKitsPlugin"
     apiVersion = "1.19"
@@ -80,6 +92,13 @@ bukkit {
 
     authors = listOf("UniqueGame", "OneLiteFeather")
 
+}
+
+sonarqube {
+    properties {
+        property("sonar.projectKey", "onelitefeather_projects_player-kits_AYUcL9fiZDfNdlYcbA_J=")
+        property("sonar.qualitygate.wait", true)
+    }
 }
 
 liquibase {
