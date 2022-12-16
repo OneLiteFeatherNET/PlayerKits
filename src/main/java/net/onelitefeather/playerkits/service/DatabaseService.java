@@ -1,6 +1,6 @@
 package net.onelitefeather.playerkits.service;
 
-import net.onelitefeather.playerkits.kit.cooldown.PlayerKitCooldown;
+import net.onelitefeather.playerkits.kit.ClaimedKit;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.model.naming.ImplicitNamingStrategyLegacyJpaImpl;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
@@ -52,7 +52,7 @@ public class DatabaseService {
         properties.put(AvailableSettings.HBM2DDL_AUTO, Action.UPDATE.name().toLowerCase());
 
         configuration.setProperties(properties);
-        configuration.addAnnotatedClass(PlayerKitCooldown.class);
+        configuration.addAnnotatedClass(ClaimedKit.class);
 
         var registry = new StandardServiceRegistryBuilder().applySettings(configuration.getProperties()).build();
         return configuration.buildSessionFactory(registry);
