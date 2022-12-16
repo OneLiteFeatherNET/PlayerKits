@@ -5,7 +5,6 @@ import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.onelitefeather.playerkits.PlayerKitsPlugin;
 import net.onelitefeather.playerkits.kit.PlayerKit;
-import net.onelitefeather.playerkits.service.PlayerKitCooldownService;
 import net.onelitefeather.playerkits.service.PlayerKitService;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -17,8 +16,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Consumer;
 
-public record InventoryListener(@NotNull PlayerKitsPlugin plugin, @NotNull PlayerKitService playerKitService,
-                                @NotNull PlayerKitCooldownService cooldownManager) implements Listener {
+public record InventoryListener(@NotNull PlayerKitsPlugin plugin, @NotNull PlayerKitService playerKitService) implements Listener {
 
     @EventHandler
     public void handlePreviewInventoryClick(InventoryClickEvent event) {
