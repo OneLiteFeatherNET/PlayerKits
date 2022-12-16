@@ -13,15 +13,14 @@ import java.util.List;
 
 public class PlayerKitsPlugin extends JavaPlugin {
 
-
     private PlayerKitService playerKitService;
-    private PlayerKitCooldownService playerKitCooldownService;
     private ItemRegistry itemRegistry;
     private I18nLocaleService i18nLocaleService;
     private PlayerKitSetupService playerKitSetupService;
 
     private PaperCommandService paperCommandService;
 
+    private ClaimedKitService claimedKitService;
     private DatabaseService databaseService;
 
     @Override
@@ -40,15 +39,15 @@ public class PlayerKitsPlugin extends JavaPlugin {
 
         this.i18nLocaleService = new I18nLocaleService(this);
         this.itemRegistry = new ItemRegistry(this);
+
+        this.claimedKitService = new ClaimedKitService(this);
         this.playerKitSetupService = new PlayerKitSetupService(this);
         this.playerKitService = new PlayerKitService(this);
-        this.playerKitCooldownService = new PlayerKitCooldownService(this);
 
         this.paperCommandService = new PaperCommandService(this);
         this.paperCommandService.registerCommands();
 
-
-        pluginManager.registerEvents(new InventoryListener(this, this.playerKitService, this.playerKitCooldownService), this);
+        pluginManager.registerEvents(new InventoryListener(this, this.playerKitService), this);
         pluginManager.registerEvents(new PlayerConnectionListener(this, this.playerKitService), this);
     }
 
@@ -60,6 +59,11 @@ public class PlayerKitsPlugin extends JavaPlugin {
     }
 
     @NotNull
+    public ClaimedKitService getClaimedKitService() {
+        return claimedKitService;
+    }
+
+    @NotNull
     public PaperCommandService getPaperCommandService() {
         return paperCommandService;
     }
@@ -67,11 +71,6 @@ public class PlayerKitsPlugin extends JavaPlugin {
     @NotNull
     public PlayerKitSetupService getPlayerKitSetupService() {
         return playerKitSetupService;
-    }
-
-    @NotNull
-    public PlayerKitCooldownService getCooldownService() {
-        return playerKitCooldownService;
     }
 
     @NotNull
