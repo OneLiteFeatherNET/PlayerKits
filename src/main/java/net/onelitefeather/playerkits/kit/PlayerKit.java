@@ -14,6 +14,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 public final class PlayerKit {
 
@@ -79,6 +80,18 @@ public final class PlayerKit {
         }
 
         return value;
+    }
+
+    public TimeUnit getTimeUnit() {
+        return TimeUnit.valueOf(getPropertyValue(PlayerKitProperty.COOLDOWN_TIME_UNIT, String.class).toUpperCase());
+    }
+
+    public boolean isFirstJoin() {
+        return getPropertyValue(PlayerKitProperty.FIRST_JOIN, Boolean.class);
+    }
+
+    public boolean isOneTime() {
+        return getPropertyValue(PlayerKitProperty.ONE_TIME, Boolean.class);
     }
 
     @SuppressWarnings("java:S1452")
