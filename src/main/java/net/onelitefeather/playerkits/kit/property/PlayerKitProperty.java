@@ -5,7 +5,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 public class PlayerKitProperty<T> {
 
@@ -14,7 +13,7 @@ public class PlayerKitProperty<T> {
     public static final PlayerKitProperty<Boolean> FIRST_JOIN = new PlayerKitProperty<>(Type.FIRST_JOIN, false);
     public static final PlayerKitProperty<Boolean> VISIBLE = new PlayerKitProperty<>(Type.VISIBLE, true);
     public static final PlayerKitProperty<Double> COOLDOWN_TIME = new PlayerKitProperty<>(Type.COOLDOWN_TIME, -1D);
-    public static final PlayerKitProperty<TimeUnit> COOLDOWN_TIME_UNIT = new PlayerKitProperty<>(Type.COOLDOWN_TIME_UNIT, TimeUnit.SECONDS);
+    public static final PlayerKitProperty<String> COOLDOWN_TIME_UNIT = new PlayerKitProperty<>(Type.COOLDOWN_TIME_UNIT, "SECONDS");
     public static final PlayerKitProperty<Double> PRICE = new PlayerKitProperty<>(Type.PRICE, 0.0D);
     public static final PlayerKitProperty<String> DISPLAY_NAME = new PlayerKitProperty<>(Type.DISPLAY_NAME, "");
     public static final List<PlayerKitProperty<?>> DEFAULTS = List.of(ONE_TIME, FIRST_JOIN, COOLDOWN_TIME, COOLDOWN_TIME_UNIT, PRICE, VISIBLE, DISPLAY_NAME);
