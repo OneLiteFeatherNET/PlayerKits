@@ -1,6 +1,8 @@
 package net.onelitefeather.playerkits.util;
 
 import net.onelitefeather.playerkits.PlayerKitsPlugin;
+import net.onelitefeather.playerkits.kit.PlayerKit;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.io.BukkitObjectInputStream;
@@ -30,6 +32,40 @@ public final class InventoryUtil {
         } catch (IOException e) {
             JavaPlugin.getPlugin(PlayerKitsPlugin.class).getLogger().log(Level.SEVERE, "Unable to save item stacks.", e);
         }
+    }
+
+    /**
+     *
+     * @param inventory the inventory
+     * @param playerKit the player kit
+     * @return true if the inventory has enough space for the player kit
+     */
+    @NotNull
+    public static Boolean hasInventorySpace(@NotNull Inventory inventory, @NotNull PlayerKit playerKit) {
+        return getInventoryFreeSpace(inventory, playerKit) != -1;
+    }
+
+    /**
+     *
+     * @param inventory the inventory
+     * @param playerKit the player kit
+     * @return the free slot count of the inventory or -1 if the inventory is full
+     */
+    @NotNull
+    public static Integer getInventoryFreeSpace(@NotNull Inventory inventory, @NotNull PlayerKit playerKit) {
+
+        var kitContents = InventoryUtil.getContents(playerKit.getContent());
+        int freeSpace = 0;
+        for (ItemStack itemStack : inventory.getStorageContents()) {
+            if (itemStack != null && itemStack.getAmount() == itemStack.getMaxStackSize()) continue;
+            freeSpace++;
+        }
+
+        if (freeSpace < kitContents.length) {
+            return -1;
+        }
+
+        return freeSpace;
     }
 
     public static @NotNull ItemStack[] deserializeInventory(@NotNull InputStream inputStream) {
