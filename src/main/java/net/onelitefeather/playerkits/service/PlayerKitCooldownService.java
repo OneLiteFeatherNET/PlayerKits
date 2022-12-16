@@ -14,6 +14,10 @@ import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 
+/**
+ * @deprecated Use {@link ClaimedKitService} instead.
+ */
+@Deprecated(forRemoval = true)
 public final class PlayerKitCooldownService {
 
     public static final long NO_COOLDOWN = -1;
