@@ -6,19 +6,17 @@ import com.google.gson.ToNumberPolicy;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.onelitefeather.playerkits.PlayerKitsPlugin;
-import net.onelitefeather.playerkits.kit.KitGrantResult;
 import net.onelitefeather.playerkits.kit.PlayerKit;
-import net.onelitefeather.playerkits.kit.cooldown.PlayerKitCooldown;
 import net.onelitefeather.playerkits.kit.property.PlayerKitProperty;
 import net.onelitefeather.playerkits.registry.ItemRegistry;
 import net.onelitefeather.playerkits.util.InventoryUtil;
+import net.onelitefeather.playerkits.util.TimeUtil;
 import org.apache.commons.lang.NotImplementedException;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.PlayerInventory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -158,83 +156,50 @@ public final class PlayerKitService {
         return true;
     }
 
-    @NotNull
-    public KitGrantResult grantKit(@NotNull Player player, @NotNull PlayerKit playerKit, boolean ignoreCooldown) {
-
-        if (!this.plugin.getCooldownService()
-                .isCooldownExpired(this.plugin.getCooldownService()
-                        .getPlayerKitCooldown(player.getUniqueId(), playerKit.getName())) && !ignoreCooldown) {
-            return KitGrantResult.COOLDOWN_NOT_EXPIRED;
-        }
-
-        var kitContents = InventoryUtil.getContents(playerKit.getContent());
-        PlayerInventory inventory = player.getInventory();
-
-        int freeSpace = 0;
-        for (ItemStack itemStack : inventory.getStorageContents()) {
-            if (itemStack != null && itemStack.getAmount() == itemStack.getMaxStackSize()) continue;
-            freeSpace++;
-        }
-
-        if (freeSpace < kitContents.length) {
-            return KitGrantResult.NOT_ENOUGH_SPACE;
-        }
-
-        return KitGrantResult.SUCCESS;
-    }
-
     @SuppressWarnings("java:S1874")
     public void handleGrantKit(@NotNull CommandSender commandSender, @NotNull Player target,
                                @NotNull PlayerKit playerKit, boolean ignoreCooldown) {
 
-        var kitCooldown = this.plugin.getCooldownService()
-                .getPlayerKitCooldown(target.getUniqueId(), playerKit.getName());
+        var claimedKit = this.plugin.getClaimedKitService().getClaimedKit(playerKit.getName());
+        var claimResult = this.plugin.getClaimedKitService().canClaim(target.getUniqueId(), playerKit.getName());
 
-        var result = grantKit(target, playerKit, ignoreCooldown);
-
-        if (this.plugin.getCooldownService().isCooldownExpired(kitCooldown)) {
-            this.plugin.getCooldownService().removeCooldown(target.getUniqueId(), playerKit.getName());
-        }
-
-        var displayName = MiniMessage.miniMessage().serialize(LegacyComponentSerializer.legacyAmpersand()
+        var targetDisplayName = MiniMessage.miniMessage().serialize(LegacyComponentSerializer.legacyAmpersand()
                 .deserialize(LegacyComponentSerializer.legacyAmpersand().serialize(target.displayName())));
 
-        switch (result) {
-
-            case NOT_ENOUGH_SPACE -> commandSender.sendMessage(MiniMessage.miniMessage().deserialize(this.plugin.i18n()
-                    .getMessage("inventory.not-enough-space",
-                            this.plugin.i18n().getPrefix(),
-                            displayName)));
-
+        switch (claimResult) {
+            case UNKNOWN_KIT -> sendMessage(commandSender, target, "kit.not-found", plugin.i18n().getPrefix(), playerKit.getName());
+            case ALREADY_CLAIMED -> sendMessage(commandSender, target, "kit.grant.already-claimed", this.plugin.i18n().getPrefix());
             case SUCCESS -> {
 
-                for (ItemStack itemStack : InventoryUtil.getContents(playerKit.getContent())) {
-                    target.getInventory().addItem(itemStack);
+                if (!InventoryUtil.hasInventorySpace(target.getInventory(), playerKit)) {
+                    commandSender.sendMessage(MiniMessage.miniMessage().deserialize(this.plugin.i18n()
+                            .getMessage("inventory.not-enough-space",
+                                    this.plugin.i18n().getPrefix(),
+                                    targetDisplayName)));
+                    return;
                 }
 
-                if (playerKit.getCooldownTime() != PlayerKitCooldownService.NO_COOLDOWN && !ignoreCooldown) {
-                    kitCooldown = new PlayerKitCooldown.Builder(playerKit.getName()).playerId(target.getUniqueId()).build();
-                    this.plugin.getCooldownService().createKitCooldown(kitCooldown);
-                }
+                if (claimKit(target, playerKit)) {
 
-                if (!commandSender.equals(target)) {
-                    commandSender.sendMessage(MiniMessage.miniMessage().deserialize(this.plugin.i18n().
-                            getMessage("kit.grant.other.success", this.plugin.i18n().getPrefix(), playerKit.getName(), displayName)));
-                }
+                    for (ItemStack itemStack : InventoryUtil.getContents(playerKit.getContent())) {
+                        target.getInventory().addItem(itemStack);
+                    }
 
-                target.sendMessage(MiniMessage.miniMessage().deserialize(this.plugin.i18n().getMessage("kit.grant.success",
-                        this.plugin.i18n().getPrefix(),
-                        playerKit.getName())));
+                    if(commandSender instanceof Player player && !commandSender.equals(target)) {
+                        sendMessage(commandSender, player, "kit.grant.other.success", this.plugin.i18n().getPrefix(), playerKit.getName(), targetDisplayName);
+                        return;
+                    }
+
+                    sendMessage(target, target, "kit.grant.success", this.plugin.i18n().getPrefix(), playerKit.getName());
+                }
             }
 
             case COOLDOWN_NOT_EXPIRED -> {
-                if (kitCooldown != null) {
-                    commandSender.sendMessage(MiniMessage.miniMessage().deserialize(this.plugin.i18n()
-                            .getMessage("cooldown-expires-at",
-                                    this.plugin.i18n().getPrefix(),
-                                    playerKit.getName(),
-                                    this.plugin.i18n().formatMillis(kitCooldown.getCooldown()),
-                                    displayName)));
+                if (claimedKit != null) {
+                    sendMessage(commandSender, target, "cooldown-expires-at", this.plugin.i18n().getPrefix(),
+                            playerKit.getName(),
+                            this.plugin.i18n().formatMillis(claimedKit.getCooldown()),
+                            targetDisplayName);
                 }
             }
 
@@ -242,19 +207,27 @@ public final class PlayerKitService {
         }
     }
 
-    @SuppressWarnings("java:S1874")
-    public void grantSpecialKit(@NotNull Player player) {
-        if (!this.plugin.isSpecialPlayer(player)) return;
-
-        var playerKit = getPlayerKit(DRACONIA_KIT_NAME);
-        if (playerKit != null && grantKit(player, playerKit, true) == KitGrantResult.SUCCESS) {
-            this.plugin.removeSpecialPlayer(player);
-            player.sendMessage(MiniMessage.miniMessage().deserialize(this.plugin.i18n().getMessage("kit.grant.special",
-                    this.plugin.i18n().getPrefix(),
-                    LegacyComponentSerializer.legacyAmpersand().serialize(player.displayName()))));
-        }
+    private void sendMessage(@NotNull CommandSender commandSender, @NotNull Player target, @NotNull String key, Object... args) {
+        var message = MiniMessage.miniMessage().deserialize(this.plugin.i18n().getMessage(key, args));
+        if (!commandSender.equals(target)) commandSender.sendMessage(message);
+        target.sendMessage(message);
     }
 
+    @Nullable
+    public PlayerKit getFirstJoinKit() {
+
+        PlayerKit playerKit = null;
+        List<PlayerKit> kitList = this.playerKitList;
+
+        for (int i = 0; i < kitList.size() && playerKit == null; i++) {
+            var kit = kitList.get(i);
+            if (kit.isFirstJoin()) {
+                playerKit = kit;
+            }
+        }
+
+        return playerKit;
+    }
 
     @Nullable
     public PlayerKit getPlayerKit(@NotNull String name) {
@@ -305,5 +278,15 @@ public final class PlayerKitService {
         } catch (IOException e) {
             this.plugin.getLogger().log(Level.SEVERE, "Could not update the playerkits.", e);
         }
+    }
+
+    private boolean claimKit(@NotNull Player player, @NotNull PlayerKit playerKit) {
+        return this.plugin.getClaimedKitService().claimKit(
+                playerKit.getName(),
+                player.getUniqueId(),
+                playerKit.isFirstJoin(),
+                playerKit.isOneTime(),
+                System.currentTimeMillis(),
+                TimeUtil.getCooldownTime(playerKit));
     }
 }
