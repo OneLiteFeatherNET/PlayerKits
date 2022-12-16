@@ -1,8 +1,9 @@
 package net.onelitefeather.playerkits.kit;
 
+@Deprecated(forRemoval = true)
 public enum KitGrantResult {
 
     SUCCESS,
-    NOT_ENOUGH_SPACE,
-    COOLDOWN_NOT_EXPIRED
+    UNKNOWN_KIT,
+    COOLDOWN_NOT_EXPIRED;
 }
