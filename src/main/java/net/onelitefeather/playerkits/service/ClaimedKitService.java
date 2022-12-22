@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 
-public class ClaimedKitService {
+public final class ClaimedKitService {
 
     private static final String KIT_NAME_PARAMETER = "kitName";
     private static final String CLAIMED_BY_PARAMETER = "claimedBy";
