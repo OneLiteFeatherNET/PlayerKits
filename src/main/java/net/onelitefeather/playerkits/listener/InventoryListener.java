@@ -6,6 +6,7 @@ import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.onelitefeather.playerkits.PlayerKitsPlugin;
 import net.onelitefeather.playerkits.kit.PlayerKit;
 import net.onelitefeather.playerkits.service.PlayerKitService;
+import net.onelitefeather.playerkits.util.TimeUtil;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -66,7 +67,6 @@ public record InventoryListener(@NotNull PlayerKitsPlugin plugin, @NotNull Playe
         consumer.accept(this.playerKitService.getPlayerKit(currentItem));
     }
 
-
     @NotNull
     private Component getDisplayName(@NotNull ItemStack itemStack) {
 
@@ -80,7 +80,7 @@ public record InventoryListener(@NotNull PlayerKitsPlugin plugin, @NotNull Playe
     private void handleInventoryClick(@NotNull Player player, @NotNull PlayerKit playerKit, ClickType clickType) {
 
         if (clickType.isLeftClick()) {
-            this.playerKitService.handleGrantKit(player, player, playerKit, false);
+            this.playerKitService.handleGrantKit(player, player, playerKit, playerKit.getCooldownTime() == TimeUtil.NO_COOLDOWN);
             player.closeInventory();
         }
 
