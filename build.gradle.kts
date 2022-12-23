@@ -96,7 +96,7 @@ bukkit {
 
 sonarqube {
     properties {
-        property("sonar.projectKey", "onelitefeather_projects_player-kits_AYUcL9fiZDfNdlYcbA_J=")
+        property("sonar.projectKey", "onelitefeather_projects_player-kits_AYUcL9fiZDfNdlYcbA_J")
         property("sonar.qualitygate.wait", true)
     }
 }
