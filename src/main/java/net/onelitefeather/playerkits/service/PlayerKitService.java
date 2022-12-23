@@ -7,6 +7,7 @@ import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.onelitefeather.playerkits.PlayerKitsPlugin;
 import net.onelitefeather.playerkits.kit.PlayerKit;
+import net.onelitefeather.playerkits.kit.property.PlayerKitProperty;
 import net.onelitefeather.playerkits.registry.ItemRegistry;
 import net.onelitefeather.playerkits.util.InventoryUtil;
 import net.onelitefeather.playerkits.util.TimeUtil;
@@ -71,9 +72,9 @@ public final class PlayerKitService {
     private void load() {
         loadPlayerKits(playerKits -> {
             for (PlayerKit playerKit : playerKits) {
-                if (!playerKit.isVisible()) continue;
+                if (!playerKit.getPropertyValue(PlayerKitProperty.VISIBLE, Boolean.class)) continue;
                 playerKit.setContent(InventoryUtil.deserializeInventoryFromString(playerKit.getItems()));
-                addPlayerKitToInventory(playerKit);
+                this.kitInventory.addItem(playerKit.setGuiItem(this.plugin.i18n().getKitItemDescription()));
             }
 
             this.playerKitList.addAll(playerKits);
@@ -126,12 +127,7 @@ public final class PlayerKitService {
     public boolean deleteKit(@NotNull PlayerKit playerKit) {
 
         try (FileWriter fileWriter = new FileWriter(this.playerKitsFile)) {
-
-            var guiItem = playerKit.getGuiItem();
-            if (this.kitInventory.contains(guiItem)) {
-                this.kitInventory.remove(guiItem);
-            }
-
+            this.kitInventory.remove(playerKit.getGuiItem());
             this.playerKitList.remove(playerKit);
             fileWriter.write(GSON.toJson(this.playerKitList));
         } catch (IOException e) {
@@ -149,18 +145,14 @@ public final class PlayerKitService {
     public boolean createPlayerKit(@NotNull PlayerKit playerKit) {
         if (existsPlayerKit(playerKit.getName())) return false;
 
-        addPlayerKitToInventory(playerKit);
+        if (playerKit.getPropertyValue(PlayerKitProperty.VISIBLE, Boolean.class)) {
+            this.kitInventory.addItem(playerKit.setGuiItem(this.plugin.i18n().getKitItemDescription()));
+        }
+
         this.playerKitList.add(playerKit);
         updatePlayerKits();
 
         return true;
-    }
-
-    private void addPlayerKitToInventory(@NotNull PlayerKit playerKit) {
-        if (!playerKit.isVisible()) return;
-        var slot = this.kitInventory.firstEmpty();
-        if (slot == -1) return;
-        this.kitInventory.setItem(slot, playerKit.setGuiItem(this.plugin.i18n().getKitItemDescription()));
     }
 
     @SuppressWarnings("java:S1874")
@@ -174,10 +166,8 @@ public final class PlayerKitService {
                 .deserialize(LegacyComponentSerializer.legacyAmpersand().serialize(target.displayName())));
 
         switch (claimResult) {
-            case UNKNOWN_KIT ->
-                    sendMessage(commandSender, target, "kit.not-found", plugin.i18n().getPrefix(), playerKit.getName());
-            case ALREADY_CLAIMED ->
-                    sendMessage(commandSender, target, "kit.grant.already-claimed", this.plugin.i18n().getPrefix());
+            case UNKNOWN_KIT -> sendMessage(commandSender, target, "kit.not-found", plugin.i18n().getPrefix(), playerKit.getName());
+            case ALREADY_CLAIMED -> sendMessage(commandSender, target, "kit.grant.already-claimed", this.plugin.i18n().getPrefix());
             case SUCCESS -> {
 
                 if (!InventoryUtil.hasInventorySpace(target.getInventory(), playerKit)) {
@@ -194,19 +184,19 @@ public final class PlayerKitService {
                         target.getInventory().addItem(itemStack);
                     }
 
-                    if (commandSender instanceof Player player && !commandSender.equals(target)) {
-                        sendMessage(commandSender, player, "kit.grant.other.success", this.plugin.i18n().getPrefix(), playerKit.getName(), targetDisplayName);
+                    if(commandSender instanceof Player player && !commandSender.equals(target)) {
+                        sendMessage(commandSender, player, "kit.grant.other.success", this.plugin.i18n().getPrefix(), playerKit.getDisplayName(), targetDisplayName);
                         return;
                     }
 
-                    sendMessage(target, target, "kit.grant.success", this.plugin.i18n().getPrefix(), playerKit.getName());
+                    sendMessage(target, target, "kit.grant.success", this.plugin.i18n().getPrefix(), playerKit.getDisplayName());
                 }
             }
 
             case COOLDOWN_NOT_EXPIRED -> {
                 if (claimedKit != null) {
                     sendMessage(commandSender, target, "cooldown-expires-at", this.plugin.i18n().getPrefix(),
-                            playerKit.getName(),
+                            playerKit.getDisplayName(),
                             this.plugin.i18n().formatMillis(claimedKit.getCooldown()),
                             targetDisplayName);
                 }
