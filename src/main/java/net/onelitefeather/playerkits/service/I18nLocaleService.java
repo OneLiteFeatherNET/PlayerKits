@@ -19,6 +19,8 @@ import java.util.ResourceBundle;
 @SuppressWarnings("java:S2885")
 public final class I18nLocaleService {
 
+    private static final Date NOW_DATE = new Date();
+    private static final Date FUTURE_DATE = new Date();
     private final SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy");
     private final ResourceBundle messages;
@@ -78,8 +80,11 @@ public final class I18nLocaleService {
      */
     @NotNull
     public String formatMillis(long millis) {
-        Date date = new Date(millis);
-        String outputTimeFormat = this.timeFormat.format(date);
-        return DateUtils.isSameDay(new Date(), date) ? outputTimeFormat : outputTimeFormat + dateFormat.format(date);
+        FUTURE_DATE.setTime(millis);
+        String outputTimeFormat = this.timeFormat.format(FUTURE_DATE);
+        NOW_DATE.setTime(System.currentTimeMillis());
+        return DateUtils.isSameDay(NOW_DATE, FUTURE_DATE) ?
+                getMessage("time-format", outputTimeFormat) :
+                getMessage("datetime-format", outputTimeFormat, dateFormat.format(FUTURE_DATE));
     }
 }
