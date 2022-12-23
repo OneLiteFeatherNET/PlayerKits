@@ -61,6 +61,12 @@ public record KitCommand(@NotNull PlayerKitsPlugin plugin, @NotNull PlayerKitSer
                                  @NotNull @Argument(value = "name", parserName = "playerKit") PlayerKit playerKit) {
 
         String name = playerKit.getName();
+
+        if(this.playerKitService.getPlayerKit(name) == null) {
+            commandSender.sendMessage(MiniMessage.miniMessage().deserialize(this.plugin.i18n().getMessage("kit.not-found", this.plugin.i18n().getPrefix(), name)));
+            return;
+        }
+
         if (this.playerKitService.deleteKit(playerKit)) {
             commandSender.sendMessage(MiniMessage.miniMessage().deserialize(
                     this.plugin.i18n().getMessage("commands.playerkit.delete.success", this.plugin.i18n().getPrefix(), name)));
