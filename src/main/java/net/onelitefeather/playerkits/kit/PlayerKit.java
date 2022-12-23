@@ -94,6 +94,11 @@ public final class PlayerKit {
         return getPropertyValue(PlayerKitProperty.ONE_TIME, Boolean.class);
     }
 
+    @NotNull
+    public String getDisplayName() {
+        return getPropertyValue(PlayerKitProperty.DISPLAY_NAME, String.class);
+    }
+
     /**
      * The Type of the PlayerKitProperty can be everything needs suppressing
      * @return a list of all player kit properties
