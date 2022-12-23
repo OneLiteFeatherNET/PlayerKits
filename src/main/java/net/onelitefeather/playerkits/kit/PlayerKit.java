@@ -48,7 +48,7 @@ public final class PlayerKit {
     }
 
     public ItemStack setGuiItem(List<Component> lore) {
-        var itemStack = content[0].clone();
+        var itemStack = content[0].clone().asOne();
         var itemMeta = itemStack.getItemMeta();
         var displayName = getPropertyValue(PlayerKitProperty.DISPLAY_NAME, String.class);
         itemMeta.displayName(MiniMessage.miniMessage().deserialize(displayName));
@@ -104,6 +104,10 @@ public final class PlayerKit {
         return kitPropertyList;
     }
 
+    public boolean isVisible() {
+        return getPropertyValue(PlayerKitProperty.VISIBLE, Boolean.class);
+    }
+
     public long getCooldownTime() {
         return getPropertyValue(PlayerKitProperty.COOLDOWN_TIME, Double.class).longValue();
     }
@@ -114,7 +118,7 @@ public final class PlayerKit {
 
     public @Nullable ItemStack @NotNull [] getContent() {
 
-        if(this.content == null) {
+        if (this.content == null) {
             this.content = InventoryUtil.deserializeInventoryFromString(this.items);
         }
         return this.content;
