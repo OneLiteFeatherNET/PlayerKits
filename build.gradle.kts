@@ -33,6 +33,8 @@ dependencies {
     implementation("org.mariadb.jdbc:mariadb-java-client:3.0.6")
     implementation("org.hibernate.orm:hibernate-hikaricp:6.1.5.Final")
 
+    implementation("com.google.code.gson:gson:2.10")
+
     // Commands
     implementation(libs.bundles.cloud)
     implementation(libs.commodore) {
