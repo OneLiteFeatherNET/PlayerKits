@@ -5,16 +5,13 @@ import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.util.UTF8ResourceBundleControl;
 import net.onelitefeather.playerkits.PlayerKitsPlugin;
-import org.apache.commons.lang.time.DateUtils;
+import org.apache.commons.lang3.time.DateUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.ResourceBundle;
+import java.util.*;
 
 @SuppressWarnings("java:S2885")
 public final class I18nLocaleService {
@@ -27,7 +24,7 @@ public final class I18nLocaleService {
     private final List<Component> kitItemDescription;
 
     public I18nLocaleService(@NotNull PlayerKitsPlugin playerKitsPlugin) {
-        this.messages = ResourceBundle.getBundle("playerkits", new UTF8ResourceBundleControl());
+        this.messages = ResourceBundle.getBundle("playerkits", Locale.US, new UTF8ResourceBundleControl());
 
         this.kitItemDescription = new ArrayList<>();
         for (String description : playerKitsPlugin.getConfig().getStringList("gui.item-description")) {
