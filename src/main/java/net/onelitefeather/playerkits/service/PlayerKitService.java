@@ -11,7 +11,6 @@ import net.onelitefeather.playerkits.kit.property.PlayerKitProperty;
 import net.onelitefeather.playerkits.registry.ItemRegistry;
 import net.onelitefeather.playerkits.util.InventoryUtil;
 import net.onelitefeather.playerkits.util.TimeUtil;
-import org.apache.commons.lang.NotImplementedException;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -29,7 +28,13 @@ import java.util.logging.Level;
 
 public final class PlayerKitService {
 
-    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().setNumberToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE).excludeFieldsWithoutExposeAnnotation().serializeNulls().create();
+    private static final Gson GSON = new GsonBuilder().
+            setPrettyPrinting().
+            setNumberToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE).
+            excludeFieldsWithoutExposeAnnotation().
+            serializeNulls().
+            create();
+
     private static final int[] BORDERS = new int[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 36, 37, 38, 39, 40, 41, 42, 43, 44, 9, 18, 27, 17, 26, 35};
     private static final ItemStack BORDER_ITEM = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
     private static final String FILE_NAME = "playerKits.json";
@@ -202,7 +207,7 @@ public final class PlayerKitService {
                 }
             }
 
-            default -> throw new NotImplementedException("Not implemented yet!");
+            default -> throw new IllegalStateException("The claim result %s is not allowed here!".formatted(claimResult.toString()));
         }
     }
 
