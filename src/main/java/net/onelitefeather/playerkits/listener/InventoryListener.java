@@ -60,7 +60,7 @@ public record InventoryListener(@NotNull PlayerKitsPlugin plugin, @NotNull Playe
     }
 
     private void getPlayerKit(@NotNull ItemStack currentItem, Consumer<PlayerKit> consumer) {
-        consumer.accept(this.playerKitService.getPlayerKit(currentItem));
+        consumer.accept(this.playerKitService.getPlayerKit(currentItem.getType()));
     }
 
     @NotNull

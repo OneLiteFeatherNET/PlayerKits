@@ -138,10 +138,10 @@ public final class PlayerKitService {
     }
 
     @Nullable
-    public PlayerKit getPlayerKit(@NotNull ItemStack itemStack) {
+    public PlayerKit getPlayerKit(@NotNull Material material) {
         try (Session session = this.plugin.getDatabaseService().getSessionFactory().openSession()) {
             var query = session.createQuery("SELECT pt FROM PlayerKit pt JOIN FETCH pt.properties p WHERE p.displayItem = :displayItem", PlayerKit.class);
-            query.setParameter("displayItem", itemStack.getType());
+            query.setParameter("displayItem", material);
 
             var result = query.uniqueResult();
             if (result != null) {
@@ -150,7 +150,7 @@ public final class PlayerKitService {
 
             return result;
         } catch (HibernateException e) {
-            this.plugin.getLogger().log(Level.SEVERE, "Cannot found a kit by item %s".formatted(itemStack.getType()), e);
+            this.plugin.getLogger().log(Level.SEVERE, "Cannot found a kit by item %s".formatted(material), e);
             return null;
         }
     }
