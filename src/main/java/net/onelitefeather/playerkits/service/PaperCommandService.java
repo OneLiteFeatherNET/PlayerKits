@@ -54,7 +54,7 @@ public class PaperCommandService {
 
     @NotNull
     private MinecraftHelp<CommandSender> buildHelpSystem() {
-        var help = MinecraftHelp.createNative("/playerkits help", paperCommandManager);
+        var help = MinecraftHelp.createNative("/kit help", paperCommandManager);
         help.setHelpColors(MinecraftHelp.HelpColors.of(
                 NamedTextColor.YELLOW,
                 NamedTextColor.GOLD,
