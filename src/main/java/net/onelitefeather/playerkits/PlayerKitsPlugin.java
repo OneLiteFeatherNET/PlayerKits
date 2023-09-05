@@ -1,32 +1,44 @@
 package net.onelitefeather.playerkits;
 
+import net.kyori.adventure.key.Key;
+import net.kyori.adventure.translation.GlobalTranslator;
+import net.kyori.adventure.translation.TranslationRegistry;
+import net.kyori.adventure.util.UTF8ResourceBundleControl;
 import net.onelitefeather.playerkits.listener.InventoryListener;
 import net.onelitefeather.playerkits.listener.PlayerConnectionListener;
 import net.onelitefeather.playerkits.registry.ItemRegistry;
 import net.onelitefeather.playerkits.service.*;
-import org.bukkit.entity.Player;
+import net.onelitefeather.playerkits.util.LynxWrapper;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Locale;
+import java.util.ResourceBundle;
 
 public class PlayerKitsPlugin extends JavaPlugin {
 
+    private static final List<Locale> SUPPORTED_LOCALS = List.of(Locale.US);
+
     private PlayerKitService playerKitService;
     private ItemRegistry itemRegistry;
-    private I18nLocaleService i18nLocaleService;
-    private PlayerKitSetupService playerKitSetupService;
 
+    private PlayerKitSetupService kitSetupService;
     private PaperCommandService paperCommandService;
-
     private ClaimedKitService claimedKitService;
     private DatabaseService databaseService;
+
+    private LynxWrapper lynxWrapper;
 
     @Override
     public void onEnable() {
 
         saveDefaultConfig();
+
+        //Save new default values
+        getConfig().options().copyDefaults(true);
+        saveConfig();
 
         this.databaseService = new DatabaseService(
                 getConfig().getString("database.jdbcUrl", ""),
@@ -37,18 +49,28 @@ public class PlayerKitsPlugin extends JavaPlugin {
 
         PluginManager pluginManager = getServer().getPluginManager();
 
-        this.i18nLocaleService = new I18nLocaleService(this);
         this.itemRegistry = new ItemRegistry(this);
 
         this.claimedKitService = new ClaimedKitService(this);
-        this.playerKitSetupService = new PlayerKitSetupService(this);
         this.playerKitService = new PlayerKitService(this);
+        this.kitSetupService = new PlayerKitSetupService(this);
 
         this.paperCommandService = new PaperCommandService(this);
         this.paperCommandService.registerCommands();
 
+        var registry = TranslationRegistry.create(Key.key("playerkits", "localization"));
+        SUPPORTED_LOCALS.forEach(locale -> {
+            var bundle = ResourceBundle.getBundle("playerkits", locale, UTF8ResourceBundleControl.get());
+            registry.registerAll(locale, bundle, false);
+        });
+
+        registry.defaultLocale(SUPPORTED_LOCALS.get(0));
+        this.lynxWrapper = new LynxWrapper(registry);
+        GlobalTranslator.translator().addSource(lynxWrapper);
+
         pluginManager.registerEvents(new InventoryListener(this, this.playerKitService), this);
         pluginManager.registerEvents(new PlayerConnectionListener(this, this.playerKitService), this);
+        pluginManager.registerEvents(this.kitSetupService, this);
     }
 
     @Override
@@ -56,6 +78,8 @@ public class PlayerKitsPlugin extends JavaPlugin {
         if (!this.databaseService.getSessionFactory().isClosed()) {
             this.databaseService.getSessionFactory().close();
         }
+
+        GlobalTranslator.translator().removeSource(lynxWrapper);
     }
 
     @NotNull
@@ -69,18 +93,8 @@ public class PlayerKitsPlugin extends JavaPlugin {
     }
 
     @NotNull
-    public PlayerKitSetupService getPlayerKitSetupService() {
-        return playerKitSetupService;
-    }
-
-    @NotNull
     public ItemRegistry getItemRegistry() {
         return itemRegistry;
-    }
-
-    @NotNull
-    public I18nLocaleService i18n() {
-        return i18nLocaleService;
     }
 
     @NotNull
@@ -93,19 +107,12 @@ public class PlayerKitsPlugin extends JavaPlugin {
         return databaseService;
     }
 
-
-    public List<String> getSpecialPlayers() {
-        return this.getConfig().getStringList("special-players");
+    @NotNull
+    public PlayerKitSetupService getKitSetupService() {
+        return kitSetupService;
     }
 
-    public boolean isSpecialPlayer(Player player) {
-        return getSpecialPlayers().contains(player.getUniqueId().toString());
-    }
-
-    public void removeSpecialPlayer(Player player) {
-        List<String> players = getSpecialPlayers();
-        players.remove(player.getUniqueId().toString());
-        this.getConfig().set("special-players", !players.isEmpty() ? players : null);
-        saveConfig();
+    public String getPluginPrefix() {
+        return "<lang:prefix>";
     }
 }

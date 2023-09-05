@@ -2,11 +2,9 @@ package net.onelitefeather.playerkits.listener;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.onelitefeather.playerkits.PlayerKitsPlugin;
 import net.onelitefeather.playerkits.kit.PlayerKit;
 import net.onelitefeather.playerkits.service.PlayerKitService;
-import net.onelitefeather.playerkits.util.TimeUtil;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -54,9 +52,7 @@ public record InventoryListener(@NotNull PlayerKitsPlugin plugin, @NotNull Playe
                     if (playerKit != null) {
                         handleInventoryClick(player, playerKit, event.getClick());
                     } else {
-                        player.sendMessage(MiniMessage.miniMessage().deserialize(
-                                this.plugin.i18n().getMessage("kit.not-found", this.plugin.i18n().getPrefix(),
-                                        PlainTextComponentSerializer.plainText().serialize(getDisplayName(currentItem)))));
+                        player.sendMessage(MiniMessage.miniMessage().deserialize("<lang:kit.not-found:'%s':'%s'>".formatted(this.plugin.getPluginPrefix(), getDisplayName(currentItem))));
                     }
                 });
             }
@@ -80,7 +76,7 @@ public record InventoryListener(@NotNull PlayerKitsPlugin plugin, @NotNull Playe
     private void handleInventoryClick(@NotNull Player player, @NotNull PlayerKit playerKit, ClickType clickType) {
 
         if (clickType.isLeftClick()) {
-            this.playerKitService.handleGrantKit(player, player, playerKit, playerKit.getCooldownTime() == TimeUtil.NO_COOLDOWN);
+            this.playerKitService.handleGrantKit(player, player, playerKit);
             player.closeInventory();
         }
 
