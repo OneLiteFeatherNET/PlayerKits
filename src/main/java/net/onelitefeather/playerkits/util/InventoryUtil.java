@@ -1,7 +1,9 @@
 package net.onelitefeather.playerkits.util;
 
+import net.kyori.adventure.text.Component;
 import net.onelitefeather.playerkits.PlayerKitsPlugin;
 import net.onelitefeather.playerkits.kit.PlayerKit;
+import org.bukkit.Material;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -22,8 +24,20 @@ public final class InventoryUtil {
         throw new IllegalStateException("Utility class");
     }
 
+    @NotNull
+    public static ItemStack createItem(@NotNull Material material,
+                                       @NotNull Component displayName,
+                                       @Nullable List<Component> lore) {
+        var item = new ItemStack(material);
+        var meta = item.getItemMeta();
+        meta.displayName(displayName);
+        meta.lore(lore);
+        item.setItemMeta(meta);
+        return item;
+    }
+
     public static void serializeInventory(@Nullable ItemStack[] inventory, @NotNull OutputStream outputStream) {
-        if(inventory == null) return;
+        if (inventory == null) return;
         try (BukkitObjectOutputStream dataOutput = new BukkitObjectOutputStream(outputStream)) {
             dataOutput.writeInt(inventory.length);
             for (ItemStack itemStack : inventory) {
@@ -35,7 +49,6 @@ public final class InventoryUtil {
     }
 
     /**
-     *
      * @param inventory the inventory
      * @param playerKit the player kit
      * @return true if the inventory has enough space for the player kit
@@ -46,7 +59,6 @@ public final class InventoryUtil {
     }
 
     /**
-     *
      * @param inventory the inventory
      * @param playerKit the player kit
      * @return the free slot count of the inventory or -1 if the inventory is full
@@ -54,7 +66,7 @@ public final class InventoryUtil {
     @NotNull
     public static Integer getInventoryFreeSpace(@NotNull Inventory inventory, @NotNull PlayerKit playerKit) {
 
-        var kitContents = InventoryUtil.getContents(playerKit.getContent());
+        var kitContents = getContents(playerKit.getItems());
         int freeSpace = 0;
         for (ItemStack itemStack : inventory.getStorageContents()) {
             if (itemStack != null && itemStack.getAmount() == itemStack.getMaxStackSize()) continue;
@@ -83,7 +95,7 @@ public final class InventoryUtil {
         return itemStacks;
     }
 
-    public static @NotNull String serializeInventoryToString(@Nullable ItemStack @NotNull[] items) {
+    public static @NotNull String serializeInventoryToString(@Nullable ItemStack @NotNull [] items) {
         String data = null;
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             serializeInventory(items, outputStream);
@@ -104,8 +116,14 @@ public final class InventoryUtil {
         }
         return items;
     }
+
     @NotNull
-    public static ItemStack[] getContents(@Nullable ItemStack @NotNull [] itemStacks) {
+    public static ItemStack[] getContents(@NotNull String items) {
+        return getContents(deserializeInventoryFromString(items));
+    }
+
+    @NotNull
+    public static ItemStack[] getContents(@Nullable ItemStack @NotNull[] itemStacks) {
 
         List<ItemStack> list = new ArrayList<>();
         for (ItemStack itemStack : itemStacks) {
