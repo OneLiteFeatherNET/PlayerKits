@@ -83,6 +83,12 @@ public class PlayerKitSetupService implements Listener {
                 var material = Material.matchMaterial(text.toUpperCase());
                 value = material != null ? material : Material.GRASS_BLOCK;
                 stepName = setup.getCurrentStep().getName();
+
+                if(this.plugin.getPlayerKitService().getPlayerKit(material != null ? material : Material.GRASS_BLOCK) != null) {
+                    player.sendMessage(MiniMessage.miniMessage().deserialize("<lang:kit.display-item-already-exists:'%s'>".formatted(this.plugin.getPluginPrefix())));
+                    return;
+                }
+
                 sendSetupFeedBack(player, value, stepName);
                 setup.setDone(player, KitSetupStep.DISPLAY_ITEM, value, KitSetupStep.COOLDOWN_TIME);
             }
