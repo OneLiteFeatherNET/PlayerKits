@@ -1,6 +1,8 @@
 package net.onelitefeather.playerkits.service;
 
 import net.onelitefeather.playerkits.kit.ClaimedKit;
+import net.onelitefeather.playerkits.kit.PlayerKit;
+import net.onelitefeather.playerkits.kit.property.PlayerKitProperties;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.model.naming.ImplicitNamingStrategyLegacyJpaImpl;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
@@ -53,6 +55,8 @@ public class DatabaseService {
 
         configuration.setProperties(properties);
         configuration.addAnnotatedClass(ClaimedKit.class);
+        configuration.addAnnotatedClass(PlayerKit.class);
+        configuration.addAnnotatedClass(PlayerKitProperties.class);
 
         var registry = new StandardServiceRegistryBuilder().applySettings(configuration.getProperties()).build();
         return configuration.buildSessionFactory(registry);
