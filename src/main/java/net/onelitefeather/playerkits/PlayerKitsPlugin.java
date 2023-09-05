@@ -79,7 +79,9 @@ public class PlayerKitsPlugin extends JavaPlugin {
             this.databaseService.getSessionFactory().close();
         }
 
-        GlobalTranslator.translator().removeSource(lynxWrapper);
+        if (this.lynxWrapper != null) {
+            GlobalTranslator.translator().removeSource(lynxWrapper);
+        }
     }
 
     @NotNull
