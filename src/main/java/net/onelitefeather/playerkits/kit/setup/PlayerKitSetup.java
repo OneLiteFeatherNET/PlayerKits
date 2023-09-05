@@ -1,80 +1,116 @@
 package net.onelitefeather.playerkits.kit.setup;
 
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.onelitefeather.playerkits.kit.PlayerKit;
-import net.onelitefeather.playerkits.kit.property.PlayerKitProperty;
+import net.onelitefeather.playerkits.kit.property.PlayerKitProperties;
 import net.onelitefeather.playerkits.util.InventoryUtil;
+import org.bukkit.Material;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.text.MessageFormat;
+import java.util.HashMap;
+import java.util.Map;
 
 public class PlayerKitSetup {
 
-    private String name;
-    private final List<PlayerKitProperty<?>> kitPropertyList;
+    private final String kitName;
+    private KitSetupStep currentStep;
+    private final Map<Integer, Object> values;
 
-    private ItemStack[] content;
+    public PlayerKitSetup(@NotNull String kitName) {
+        this.kitName = kitName;
+        this.values = new HashMap<>();
+    }
 
-    public PlayerKitSetup(@NotNull String name) {
-        this.name = name;
-        this.content = null;
-        this.kitPropertyList = new ArrayList<>();
+    public String getKitName() {
+        return kitName;
     }
 
     @NotNull
-    public String getName() {
-        return name;
+    public KitSetupStep getCurrentStep() {
+        return currentStep;
     }
 
-    public void setName(@NotNull String name) {
-        this.name = name;
+    public void setDone(@NotNull Player player, @NotNull KitSetupStep step, @NotNull Object value, @Nullable KitSetupStep nextStep) {
+        this.values.putIfAbsent(step.getId(), value);
+        if (nextStep != null) {
+            setCurrentStep(player, nextStep);
+        }
     }
 
+    public void setCurrentStep(@NotNull Player player, @NotNull KitSetupStep currentStep) {
+        this.currentStep = currentStep;
+        player.sendMessage(MiniMessage.miniMessage().deserialize(
+                MessageFormat.format("<gold><gray>[</gray>Step {0}<gray>]</gray> {1} <gray>-</gray> Expecting: <gray>{2}</gray> Default: <gray>{3}</gray></gold>",
+                        currentStep.getId(), currentStep.getName(), currentStep.getType(), currentStep.getDefaultValue())));
+    }
 
-    @SuppressWarnings("java:S1452")
-    @Nullable
-    public PlayerKitProperty<?> getKitProperty(@NotNull PlayerKitProperty.Type type) {
-
-        PlayerKitProperty<?> kitProperty = null;
-        for (int i = 0; i < this.kitPropertyList.size() && kitProperty == null; i++) {
-            var current = this.kitPropertyList.get(i);
-            if (current.getType() == type) {
-                kitProperty = current;
-            }
+    public void previousStep(@NotNull Player player) {
+        if(this.currentStep.getId() == 1) return;
+        var step = KitSetupStep.getById(this.currentStep.getId() - 1);
+        if (step == null) {
+            step = currentStep;
         }
 
-        return kitProperty;
-    }
-
-    public <T> PlayerKitProperty<T> addPropertyValue(@NotNull PlayerKitProperty<T> property) {
-
-        var kitProperty = getKitProperty(property.getType());
-        if (kitProperty != null) {
-            this.kitPropertyList.remove(kitProperty);
-        }
-
-        this.kitPropertyList.add(property);
-        return property;
-    }
-
-    @Nullable
-    public ItemStack[] getContent() {
-        return content;
-    }
-
-    public void setContent(@Nullable ItemStack @NotNull [] content) {
-        this.content = content;
-    }
-
-    public boolean isDone() {
-        return this.kitPropertyList.size() == PlayerKitProperty.DEFAULTS.size() && content != null;
+        setCurrentStep(player, step);
     }
 
     @NotNull
-    public PlayerKit createKit() {
-        if (!isDone()) throw new IllegalStateException("The Setup for Kit %s is not done!".formatted(this.name));
-        return new PlayerKit(name, InventoryUtil.serializeInventoryToString(this.content), this.kitPropertyList);
+    public PlayerKit createKit(@Nullable ItemStack @NotNull[] items) {
+
+        var kit = new PlayerKit();
+
+        kit.setName(kitName);
+
+        var displayNameStep = KitSetupStep.DISPLAY_NAME;
+        var oneTimeStep = KitSetupStep.ONE_TIME;
+        var firstJoinStep = KitSetupStep.FIRST_JOIN;
+        var visibleStep = KitSetupStep.VISIBLE;
+        var cooldownTimeStep = KitSetupStep.COOLDOWN_TIME;
+        var priceStep = KitSetupStep.PRICE;
+        var displayItemStep = KitSetupStep.DISPLAY_ITEM;
+
+        kit.setDisplayName((String) this.values.getOrDefault(displayNameStep.getId(), kitName));
+        kit.setItems(InventoryUtil.serializeInventoryToString(items));
+
+        var properties = new PlayerKitProperties();
+        properties.setOneTime((Boolean) this.values.getOrDefault(oneTimeStep.getId(), oneTimeStep.getDefaultValue()));
+        properties.setFirstJoin((Boolean) this.values.getOrDefault(firstJoinStep.getId(), firstJoinStep.getDefaultValue()));
+        properties.setVisible((Boolean) this.values.getOrDefault(visibleStep.getId(), visibleStep.getDefaultValue()));
+        properties.setCooldownTime((Long) this.values.getOrDefault(cooldownTimeStep.getId(), cooldownTimeStep.getDefaultValue()));
+        properties.setPrice((Double) this.values.getOrDefault(priceStep.getId(), priceStep.getDefaultValue()));
+        properties.setDisplayItem((Material) this.values.getOrDefault(displayItemStep.getId(), displayItemStep.getDefaultValue()));
+        kit.setProperties(properties);
+        return kit;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof PlayerKitSetup that)) return false;
+
+        if (!kitName.equals(that.kitName)) return false;
+        if (currentStep != that.currentStep) return false;
+        return values.equals(that.values);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = kitName.hashCode();
+        result = 31 * result + (currentStep != null ? currentStep.hashCode() : 0);
+        result = 31 * result + values.hashCode();
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return "PlayerKitSetup{" +
+                "kitName='" + kitName + '\'' +
+                ", currentStep=" + currentStep +
+                ", values=" + values +
+                '}';
     }
 }
