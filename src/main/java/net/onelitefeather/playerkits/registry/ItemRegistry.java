@@ -53,7 +53,8 @@ public final class ItemRegistry {
     public void build() {
         ItemStack openLastInventoryItem = new ItemStack(Material.RED_DYE);
         ItemMeta itemMeta = openLastInventoryItem.getItemMeta();
-        itemMeta.displayName(MiniMessage.miniMessage().deserialize(this.plugin.i18n().getMessage("items.open-last-inventory")));
+        itemMeta.displayName(MiniMessage.miniMessage().deserialize(
+                plugin.getConfig().getString("items.open-last-inventory", openLastInventoryItem.getType().toString())));
         openLastInventoryItem.setItemMeta(itemMeta);
         this.items.put(OPEN_LAST_INVENTORY, openLastInventoryItem);
     }
