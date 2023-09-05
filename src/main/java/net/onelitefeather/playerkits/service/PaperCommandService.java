@@ -48,8 +48,8 @@ public class PaperCommandService {
     }
 
     public void registerCommands() {
-        annotationParser.parse(new KitCommand(this.plugin, this.plugin.getPlayerKitService()));
         annotationParser.parse(new KitCommandParser(this.plugin.getPlayerKitService()));
+        annotationParser.parse(new KitCommand(this.plugin, this.plugin.getPlayerKitService()));
     }
 
     @NotNull
