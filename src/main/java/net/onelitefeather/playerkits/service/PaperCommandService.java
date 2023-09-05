@@ -10,8 +10,8 @@ import cloud.commandframework.minecraft.extras.MinecraftHelp;
 import cloud.commandframework.paper.PaperCommandManager;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.onelitefeather.playerkits.PlayerKitsPlugin;
-import net.onelitefeather.playerkits.commands.KitCommand;
-import net.onelitefeather.playerkits.commands.KitSetupCommand;
+import net.onelitefeather.playerkits.command.KitCommand;
+import net.onelitefeather.playerkits.command.parser.KitCommandParser;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -49,7 +49,7 @@ public class PaperCommandService {
 
     public void registerCommands() {
         annotationParser.parse(new KitCommand(this.plugin, this.plugin.getPlayerKitService()));
-        annotationParser.parse(new KitSetupCommand(this.plugin));
+        annotationParser.parse(new KitCommandParser(this.plugin.getPlayerKitService()));
     }
 
     @NotNull
@@ -75,9 +75,7 @@ public class PaperCommandService {
     private PaperCommandManager<CommandSender> buildCommandSystem() {
 
         try {
-            PaperCommandManager<CommandSender> commandManager = new PaperCommandManager<>(this.plugin,
-                    CommandExecutionCoordinator.simpleCoordinator(), Function.identity(), Function.identity());
-
+            var commandManager = PaperCommandManager.createNative(this.plugin, CommandExecutionCoordinator.simpleCoordinator());
             if (commandManager.hasCapability(CloudBukkitCapabilities.BRIGADIER)) {
                 commandManager.registerBrigadier();
             }
