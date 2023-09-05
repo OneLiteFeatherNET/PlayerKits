@@ -16,6 +16,7 @@ import java.util.logging.Level;
 
 public final class ClaimedKitService {
 
+    public static final Long IGNORE_COOLDOWN = -1L;
     private static final String KIT_NAME_PARAMETER = "kitName";
     private static final String CLAIMED_BY_PARAMETER = "claimedBy";
     private final PlayerKitsPlugin plugin;
@@ -76,10 +77,12 @@ public final class ClaimedKitService {
         if (playerKit == null) return KitClaimResult.UNKNOWN_KIT;
 
         var offlinePlayer = plugin.getServer().getOfflinePlayer(claimedBy);
-        if(offlinePlayer.hasPlayedBefore() && playerKit.isFirstJoin()) return KitClaimResult.ALREADY_CLAIMED;
 
         if (claimedKit == null) return KitClaimResult.SUCCESS;
-        if (claimedKit.getOneTime() || claimedKit.getFirstJoin()) return KitClaimResult.ALREADY_CLAIMED;
+        if (offlinePlayer.hasPlayedBefore() && playerKit.isFirstJoin() && claimedKit.getFirstJoin())
+            return KitClaimResult.ALREADY_CLAIMED;
+
+        if (playerKit.isOneTime() && claimedKit.getOneTime()) return KitClaimResult.ALREADY_CLAIMED;
         return System.currentTimeMillis() > claimedKit.getCooldown() ? KitClaimResult.SUCCESS : KitClaimResult.COOLDOWN_NOT_EXPIRED;
     }
 
@@ -90,8 +93,8 @@ public final class ClaimedKitService {
                             @NotNull Long claimedAt,
                             @NotNull Long cooldown) {
 
-        ClaimedKit claimedKit = getClaimedKit(kitName);
-        if (claimedKit != null) return false;
+        ClaimedKit claimedKit = getClaimedKit(kitName, claimedBy);
+        if (claimedKit != null) return !firstJoin || !oneTime || cooldown.equals(IGNORE_COOLDOWN);
 
         Transaction transaction = null;
         try (Session session = this.plugin.getDatabaseService().getSessionFactory().openSession()) {
