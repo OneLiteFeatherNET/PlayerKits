@@ -19,27 +19,26 @@ repositories {
 dependencies {
 
     // Paper
-    compileOnly("io.papermc.paper:paper-api:1.20.1-R0.1-SNAPSHOT")
+    compileOnly(libs.paper)
 
     //Cloud command framework
-    implementation("cloud.commandframework", "cloud-paper", "1.8.2")
-    implementation("cloud.commandframework", "cloud-annotations", "1.8.2")
-    implementation("cloud.commandframework", "cloud-minecraft-extras", "1.8.2")
-    implementation("me.lucko:commodore:2.2") {
-        isTransitive = false
-    }
+    implementation(libs.cloudPaper)
+    implementation(libs.cloudAnnotations)
+    implementation(libs.cloudExtras)
+    implementation(libs.commodore)
 
     //Caching
-    implementation("com.github.ben-manes.caffeine:caffeine:3.1.1")
+    implementation(libs.caffeine)
 
     // Database
-    implementation("org.hibernate:hibernate-core:6.1.5.Final")
-    implementation("org.mariadb.jdbc:mariadb-java-client:3.0.6")
-    implementation("org.hibernate.orm:hibernate-hikaricp:6.1.5.Final")
+    implementation(libs.hibernateCore)
+    implementation(libs.mariadb)
+    implementation(libs.hibernateHikariCP)
+
 
     // Testing
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.0")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
+    testImplementation(libs.junitJupiterApi)
+    testRuntimeOnly(libs.junitJupiterEngine)
 }
 
 java {
