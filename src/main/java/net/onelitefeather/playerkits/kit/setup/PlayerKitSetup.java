@@ -10,11 +10,10 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Map;
 
-public class PlayerKitSetup {
+public final class PlayerKitSetup {
 
     private final String kitName;
     private KitSetupStep currentStep;
@@ -44,8 +43,11 @@ public class PlayerKitSetup {
     public void setCurrentStep(@NotNull Player player, @NotNull KitSetupStep currentStep) {
         this.currentStep = currentStep;
         player.sendMessage(MiniMessage.miniMessage().deserialize(
-                MessageFormat.format("<gold><gray>[</gray>Step {0}<gray>]</gray> {1} <gray>-</gray> Expecting: <gray>{2}</gray> Default: <gray>{3}</gray></gold>",
-                        currentStep.getId(), currentStep.getName(), currentStep.getType(), currentStep.getDefaultValue())));
+                "<lang:kit.setup.current-step:'%s':'%s':'%s':'%s'>".formatted(
+                currentStep.getId(),
+                currentStep.getName(),
+                currentStep.getType(),
+                currentStep.getDefaultValue())));
     }
 
     public void previousStep(@NotNull Player player) {
