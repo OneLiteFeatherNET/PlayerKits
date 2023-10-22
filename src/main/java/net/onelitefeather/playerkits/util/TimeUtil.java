@@ -5,6 +5,8 @@ import org.jetbrains.annotations.NotNull;
 
 public final class TimeUtil {
 
+    private static final String VALID_TIME_PATTERN = "(?<=\\D)(?=\\d)|(?<=\\d)(?=\\D)";
+
     private TimeUtil() {
         throw new IllegalStateException("Utility class");
     }
@@ -50,8 +52,8 @@ public final class TimeUtil {
      * @return the amount of milliseconds equivalent to the given string
      */
     public static long toMilliSec(@NotNull String s) {
-        if(s.equalsIgnoreCase("-1")) return -1L;
-        String[] sl = s.toLowerCase().split("(?<=\\D)(?=\\d)|(?<=\\d)(?=\\D)");
+        if (s.equalsIgnoreCase(ClaimedKitService.IGNORE_COOLDOWN.toString())) return ClaimedKitService.IGNORE_COOLDOWN;
+        String[] sl = s.toLowerCase().split(VALID_TIME_PATTERN);
         long i = Long.parseLong(sl[0]);
         return System.currentTimeMillis() + switch (sl[1]) {
             case "s" -> i * 1000;
