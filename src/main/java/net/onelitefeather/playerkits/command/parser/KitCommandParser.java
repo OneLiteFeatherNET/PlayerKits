@@ -9,11 +9,10 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
 
-public class KitCommandParser {
+public final class KitCommandParser {
 
     private final PlayerKitService playerKitService;
 
@@ -38,13 +37,7 @@ public class KitCommandParser {
     @NotNull
     @Suggestions("playerKits")
     public List<String> getKitNames(@NotNull CommandContext<CommandSender> context, @NotNull String input) {
-
-        List<String> names = new ArrayList<>();
-        var kits = this.playerKitService.getKits();
-        for(PlayerKit kit : kits) {
-            names.add(kit.getName());
-        }
-
-        return StringUtil.copyPartialMatches(input, names, new ArrayList<>(names.size()));
+        List<String> names = this.playerKitService.getKits().stream().map(PlayerKit::getName).toList();
+        return names.stream().filter(string -> StringUtil.startsWithIgnoreCase(string, input)).toList();
     }
 }
