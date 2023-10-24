@@ -158,7 +158,7 @@ public final class PlayerKitService {
 
     public void handleGrantKit(@NotNull CommandSender commandSender, @NotNull Player target, @NotNull PlayerKit playerKit) {
 
-        var claimedKit = this.plugin.getClaimedKitService().getClaimedKit(playerKit.getName());
+        var claimedKit = this.plugin.getClaimedKitService().getClaimedKit(playerKit.getName(), target.getUniqueId());
         var claimResult = this.plugin.getClaimedKitService().canClaim(target.getUniqueId(), playerKit.getName());
 
         switch (claimResult) {
