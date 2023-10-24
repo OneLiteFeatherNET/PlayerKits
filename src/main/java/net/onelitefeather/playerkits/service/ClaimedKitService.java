@@ -55,20 +55,6 @@ public final class ClaimedKitService {
         return null;
     }
 
-    @Nullable
-    public ClaimedKit getClaimedKit(@NotNull String kitName) {
-
-        try (Session session = this.plugin.getDatabaseService().getSessionFactory().openSession()) {
-            var query = session.createQuery("SELECT ck FROM ClaimedKit ck WHERE ck.kitName = :kitName", ClaimedKit.class);
-            query.setParameter(KIT_NAME_PARAMETER, kitName);
-            return query.uniqueResult();
-        } catch (HibernateException e) {
-            this.plugin.getLogger().log(Level.SEVERE, "Could not found a claimed kit called %s".formatted(kitName), e);
-        }
-
-        return null;
-    }
-
     @NotNull
     public KitClaimResult canClaim(@NotNull UUID claimedBy, @NotNull String kitName) {
 
