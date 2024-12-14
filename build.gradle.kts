@@ -2,7 +2,7 @@ plugins {
     id("java")
     `java-library`
     id("net.minecrell.plugin-yml.paper") version "0.6.0"
-    id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("com.gradleup.shadow") version "9.0.0-beta4"
     id("xyz.jpenilla.run-paper") version "2.1.0"
     id("org.sonarqube") version "4.0.0.2929"
     jacoco
