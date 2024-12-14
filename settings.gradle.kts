@@ -4,7 +4,7 @@ dependencyResolutionManagement {
         create("libs") {
 
             //Paper
-            library("paper", "io.papermc.paper", "paper-api").version("1.20.1-R0.1-SNAPSHOT")
+            library("paper", "io.papermc.paper", "paper-api").version("1.21.1-R0.1-SNAPSHOT")
 
             //Cloud command framework
             library("cloudPaper", "cloud.commandframework", "cloud-paper").version("1.8.2")
