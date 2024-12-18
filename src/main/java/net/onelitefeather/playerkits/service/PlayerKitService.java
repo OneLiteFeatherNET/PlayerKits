@@ -17,13 +17,16 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
@@ -57,7 +60,11 @@ public final class PlayerKitService {
 
         if (!existsPlayerKit(playerKit.getName())) return false;
         Transaction transaction = null;
-        try (Session session = this.plugin.getDatabaseService().getSessionFactory().openSession()) {
+
+        var sessionFactory = this.plugin.getDatabaseService().getSessionFactory();
+        if (sessionFactory.isEmpty()) return false;
+
+        try (Session session = sessionFactory.get().openSession()) {
             transaction = session.beginTransaction();
             session.remove(playerKit.getProperties());
             session.remove(playerKit);
@@ -84,7 +91,10 @@ public final class PlayerKitService {
         if (existsPlayerKit(playerKit.getName())) return;
 
         Transaction transaction = null;
-        try (Session session = this.plugin.getDatabaseService().getSessionFactory().openSession()) {
+        var sessionFactory = this.plugin.getDatabaseService().getSessionFactory();
+        if (sessionFactory.isEmpty()) return;
+
+        try (Session session = sessionFactory.get().openSession()) {
             transaction = session.beginTransaction();
 
             session.persist(playerKit.getProperties());
@@ -110,18 +120,15 @@ public final class PlayerKitService {
 
     @NotNull
     public List<PlayerKit> getKits() {
-        try (Session session = this.plugin.getDatabaseService().getSessionFactory().openSession()) {
+        return this.plugin.getDatabaseService().getSessionFactory().map(SessionFactory::openSession).map(session -> {
             var query = session.createQuery("SELECT pt FROM PlayerKit pt JOIN FETCH pt.properties p", PlayerKit.class);
             return query.list();
-        } catch (HibernateException e) {
-            this.plugin.getLogger().log(Level.SEVERE, "Cannot found kits", e);
-            return Collections.emptyList();
-        }
+        }).orElse(Collections.emptyList());
     }
 
     @Nullable
     public PlayerKit getPlayerKit(@NotNull String name) {
-        try (Session session = this.plugin.getDatabaseService().getSessionFactory().openSession()) {
+        return this.plugin.getDatabaseService().getSessionFactory().map(SessionFactory::openSession).map(session -> {
             var query = session.createQuery("SELECT pt FROM PlayerKit pt JOIN FETCH pt.properties p WHERE pt.name = :name", PlayerKit.class);
             query.setParameter("name", name);
 
@@ -131,15 +138,13 @@ public final class PlayerKitService {
             }
 
             return result;
-        } catch (HibernateException e) {
-            this.plugin.getLogger().log(Level.SEVERE, "Cannot found kit %s".formatted(name), e);
-            return null;
-        }
+        }).orElse(null);
     }
 
     @Nullable
     public PlayerKit getPlayerKit(@NotNull Material material) {
-        try (Session session = this.plugin.getDatabaseService().getSessionFactory().openSession()) {
+
+        return this.plugin.getDatabaseService().getSessionFactory().map(SessionFactory::openSession).map(session -> {
             var query = session.createQuery("SELECT pt FROM PlayerKit pt JOIN FETCH pt.properties p WHERE p.displayItem = :displayItem", PlayerKit.class);
             query.setParameter("displayItem", material);
 
@@ -149,10 +154,7 @@ public final class PlayerKitService {
             }
 
             return result;
-        } catch (HibernateException e) {
-            this.plugin.getLogger().log(Level.SEVERE, "Cannot found a kit by item %s".formatted(material), e);
-            return null;
-        }
+        }).orElse(null);
     }
 
 
@@ -181,21 +183,19 @@ public final class PlayerKitService {
             case SUCCESS -> kitGrantSuccess(commandSender, target, playerKit);
 
             case COOLDOWN_NOT_EXPIRED -> {
-                if (claimedKit != null) {
-
-                    if (!commandSender.equals(target)) {
-                        commandSender.sendMessage(MiniMessage.miniMessage().deserialize("<lang:cooldown-expires-at.other:'%s':'%s':'%s':'%s'>".formatted(
-                                this.plugin.getPluginPrefix(),
-                                playerKit.getName(),
-                                TimeUtil.getRemainingTime(claimedKit.getCooldown()),
-                                target.displayName())));
-                    }
-
-                    target.sendMessage(MiniMessage.miniMessage().deserialize("<lang:cooldown-expires-at.self:'%s':'%s':'%s'>".formatted(
+                if(claimedKit.isEmpty()) return;
+                if (!commandSender.equals(target)) {
+                    commandSender.sendMessage(MiniMessage.miniMessage().deserialize("<lang:cooldown-expires-at.other:'%s':'%s':'%s':'%s'>".formatted(
                             this.plugin.getPluginPrefix(),
                             playerKit.getName(),
-                            TimeUtil.getRemainingTime(claimedKit.getCooldown()))));
+                            TimeUtil.getRemainingTime(claimedKit.get().getCooldown()),
+                            target.displayName())));
                 }
+
+                target.sendMessage(MiniMessage.miniMessage().deserialize("<lang:cooldown-expires-at.self:'%s':'%s':'%s'>".formatted(
+                        this.plugin.getPluginPrefix(),
+                        playerKit.getName(),
+                        TimeUtil.getRemainingTime(claimedKit.get().getCooldown()))));
             }
 
             default ->
@@ -214,7 +214,10 @@ public final class PlayerKitService {
 
     public void updatePlayerKit(@NotNull PlayerKit playerKit) {
         Transaction transaction = null;
-        try (Session session = this.plugin.getDatabaseService().getSessionFactory().openSession()) {
+        var sessionFactory = this.plugin.getDatabaseService().getSessionFactory();
+        if (sessionFactory.isEmpty()) return;
+
+        try (Session session = sessionFactory.get().openSession()) {
             transaction = session.beginTransaction();
             session.merge(playerKit.getProperties());
             session.merge(playerKit);

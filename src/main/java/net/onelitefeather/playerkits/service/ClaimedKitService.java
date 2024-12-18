@@ -5,12 +5,13 @@ import net.onelitefeather.playerkits.kit.ClaimedKit;
 import net.onelitefeather.playerkits.kit.KitClaimResult;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.logging.Level;
 
@@ -27,32 +28,20 @@ public final class ClaimedKitService {
 
     @NotNull
     public List<ClaimedKit> getClaimedKits(@NotNull UUID claimedBy) {
-
-        List<ClaimedKit> claimedKits = new ArrayList<>();
-        try (Session session = this.plugin.getDatabaseService().getSessionFactory().openSession()) {
+        return this.plugin.getDatabaseService().getSessionFactory().map(SessionFactory::openSession).map(session -> {
             var query = session.createQuery("SELECT ck FROM ClaimedKit ck WHERE ck.claimedBy = :claimedBy", ClaimedKit.class);
             query.setParameter(CLAIMED_BY_PARAMETER, claimedBy.toString());
-            claimedKits.addAll(query.list());
-        } catch (HibernateException e) {
-            this.plugin.getLogger().log(Level.SEVERE, "Could not found claimed kits for player %s".formatted(claimedBy.toString()), e);
-        }
-
-        return claimedKits;
+            return query.list();
+        }).orElseGet(ArrayList::new);
     }
 
-    @Nullable
-    public ClaimedKit getClaimedKit(@NotNull String kitName, @NotNull UUID claimedBy) {
-
-        try (Session session = this.plugin.getDatabaseService().getSessionFactory().openSession()) {
+    public Optional<ClaimedKit> getClaimedKit(@NotNull String kitName, @NotNull UUID claimedBy) {
+        return this.plugin.getDatabaseService().getSessionFactory().map(SessionFactory::openSession).map(session -> {
             var query = session.createQuery("SELECT ck FROM ClaimedKit ck WHERE ck.kitName = :kitName AND ck.claimedBy = :claimedBy", ClaimedKit.class);
             query.setParameter(KIT_NAME_PARAMETER, kitName);
             query.setParameter(CLAIMED_BY_PARAMETER, claimedBy.toString());
             return query.uniqueResult();
-        } catch (HibernateException e) {
-            this.plugin.getLogger().log(Level.SEVERE, "Could not found a claimed kit called %s".formatted(kitName), e);
-        }
-
-        return null;
+        });
     }
 
     @NotNull
@@ -64,12 +53,12 @@ public final class ClaimedKitService {
 
         var offlinePlayer = plugin.getServer().getOfflinePlayer(claimedBy);
 
-        if (claimedKit == null) return KitClaimResult.SUCCESS;
-        if (offlinePlayer.hasPlayedBefore() && playerKit.isFirstJoin() && claimedKit.getFirstJoin())
+        if (claimedKit.isEmpty()) return KitClaimResult.SUCCESS;
+        if (offlinePlayer.hasPlayedBefore() && playerKit.isFirstJoin() && claimedKit.get().getFirstJoin())
             return KitClaimResult.ALREADY_CLAIMED;
 
-        if (playerKit.isOneTime() && claimedKit.getOneTime()) return KitClaimResult.ALREADY_CLAIMED;
-        return System.currentTimeMillis() > claimedKit.getCooldown() ? KitClaimResult.SUCCESS : KitClaimResult.COOLDOWN_NOT_EXPIRED;
+        if (playerKit.isOneTime() && claimedKit.get().getOneTime()) return KitClaimResult.ALREADY_CLAIMED;
+        return System.currentTimeMillis() > claimedKit.get().getCooldown() ? KitClaimResult.SUCCESS : KitClaimResult.COOLDOWN_NOT_EXPIRED;
     }
 
     public boolean claimKit(@NotNull String kitName,
@@ -79,11 +68,15 @@ public final class ClaimedKitService {
                             @NotNull Long claimedAt,
                             @NotNull Long cooldown) {
 
-        ClaimedKit claimedKit = getClaimedKit(kitName, claimedBy);
-        if (claimedKit != null) return !firstJoin || !oneTime || cooldown.equals(IGNORE_COOLDOWN);
+        var claimedKit = getClaimedKit(kitName, claimedBy);
+        if (claimedKit.isPresent()) return !firstJoin || !oneTime || cooldown.equals(IGNORE_COOLDOWN);
 
         Transaction transaction = null;
-        try (Session session = this.plugin.getDatabaseService().getSessionFactory().openSession()) {
+
+        var sessionFactory = this.plugin.getDatabaseService().getSessionFactory();
+        if (sessionFactory.isEmpty()) return false;
+
+        try (Session session = sessionFactory.get().openSession()) {
             transaction = session.beginTransaction();
 
             ClaimedKit kit = new ClaimedKit();

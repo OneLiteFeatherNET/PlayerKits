@@ -7,10 +7,15 @@ import net.kyori.adventure.util.UTF8ResourceBundleControl;
 import net.onelitefeather.playerkits.listener.InventoryListener;
 import net.onelitefeather.playerkits.listener.PlayerConnectionListener;
 import net.onelitefeather.playerkits.registry.ItemRegistry;
-import net.onelitefeather.playerkits.service.*;
+import net.onelitefeather.playerkits.service.ClaimedKitService;
+import net.onelitefeather.playerkits.service.DatabaseService;
+import net.onelitefeather.playerkits.service.PaperCommandService;
+import net.onelitefeather.playerkits.service.PlayerKitService;
+import net.onelitefeather.playerkits.service.PlayerKitSetupService;
 import net.onelitefeather.playerkits.util.LynxWrapper;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.hibernate.SessionFactory;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -40,12 +45,7 @@ public class PlayerKitsPlugin extends JavaPlugin {
         getConfig().options().copyDefaults(true);
         saveConfig();
 
-        this.databaseService = new DatabaseService(
-                getConfig().getString("database.jdbcUrl", ""),
-                getConfig().getString("database.driver", ""),
-                getConfig().getString("database.username", ""),
-                getConfig().getString("database.password", ""),
-                getConfig().getString("database.dialect", ""));
+        this.databaseService = new DatabaseService(this);
 
         PluginManager pluginManager = getServer().getPluginManager();
 
@@ -64,7 +64,7 @@ public class PlayerKitsPlugin extends JavaPlugin {
             registry.registerAll(locale, bundle, false);
         });
 
-        registry.defaultLocale(SUPPORTED_LOCALS.get(0));
+        registry.defaultLocale(SUPPORTED_LOCALS.getFirst());
         this.lynxWrapper = new LynxWrapper(registry);
         GlobalTranslator.translator().addSource(lynxWrapper);
 
@@ -75,8 +75,8 @@ public class PlayerKitsPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        if (!this.databaseService.getSessionFactory().isClosed()) {
-            this.databaseService.getSessionFactory().close();
+        if (!this.databaseService.getSessionFactory().map(SessionFactory::isClosed).orElse(true)) {
+            this.databaseService.getSessionFactory().ifPresent(SessionFactory::close);
         }
 
         if (this.lynxWrapper != null) {

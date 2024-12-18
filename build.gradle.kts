@@ -31,10 +31,9 @@ dependencies {
     implementation(libs.caffeine)
 
     // Database
-    implementation(libs.hibernateCore)
-    implementation(libs.mariadb)
-    implementation(libs.hibernateHikariCP)
-
+    implementation(libs.bundles.hibernate)
+    implementation(libs.jaxbRuntime)
+    implementation(libs.postgresql)
 
     // Testing
     testImplementation(libs.junitJupiterApi)
@@ -58,6 +57,7 @@ tasks {
     }
 
     runServer {
+        jvmArgs("-Dcom.mojang.eula.agree=true")
         minecraftVersion("1.21.1")
     }
 
