@@ -1,29 +1,24 @@
 package net.onelitefeather.playerkits.service;
 
-import cloud.commandframework.annotations.AnnotationParser;
-import cloud.commandframework.arguments.parser.ParserParameters;
-import cloud.commandframework.arguments.parser.StandardParameters;
-import cloud.commandframework.bukkit.CloudBukkitCapabilities;
-import cloud.commandframework.execution.CommandExecutionCoordinator;
-import cloud.commandframework.meta.CommandMeta;
-import cloud.commandframework.minecraft.extras.MinecraftHelp;
-import cloud.commandframework.paper.PaperCommandManager;
+import io.papermc.paper.command.brigadier.CommandSourceStack;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.onelitefeather.playerkits.PlayerKitsPlugin;
 import net.onelitefeather.playerkits.command.KitCommand;
 import net.onelitefeather.playerkits.command.parser.KitCommandParser;
-import org.bukkit.command.CommandSender;
+import org.incendo.cloud.annotations.AnnotationParser;
+import org.incendo.cloud.execution.ExecutionCoordinator;
+import org.incendo.cloud.minecraft.extras.AudienceProvider;
+import org.incendo.cloud.minecraft.extras.MinecraftHelp;
+import org.incendo.cloud.paper.PaperCommandManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.function.Function;
 
 public class PaperCommandService {
 
     private final PlayerKitsPlugin plugin;
-    private final PaperCommandManager<CommandSender> paperCommandManager;
-    private final AnnotationParser<CommandSender> annotationParser;
-    private final MinecraftHelp<CommandSender> minecraftHelp;
+    private final PaperCommandManager<CommandSourceStack> paperCommandManager;
+    private final AnnotationParser<CommandSourceStack> annotationParser;
+    private final MinecraftHelp<CommandSourceStack> minecraftHelp;
 
     public PaperCommandService(@NotNull PlayerKitsPlugin plugin) {
         this.plugin = plugin;
@@ -33,17 +28,17 @@ public class PaperCommandService {
     }
 
     @NotNull
-    public PaperCommandManager<CommandSender> getPaperCommandManager() {
+    public PaperCommandManager<CommandSourceStack> getPaperCommandManager() {
         return paperCommandManager;
     }
 
     @NotNull
-    public AnnotationParser<CommandSender> getAnnotationParser() {
+    public AnnotationParser<CommandSourceStack> getAnnotationParser() {
         return annotationParser;
     }
 
     @NotNull
-    public MinecraftHelp<CommandSender> getMinecraftHelp() {
+    public MinecraftHelp<CommandSourceStack> getMinecraftHelp() {
         return minecraftHelp;
     }
 
@@ -53,37 +48,34 @@ public class PaperCommandService {
     }
 
     @NotNull
-    private MinecraftHelp<CommandSender> buildHelpSystem() {
-        var help = MinecraftHelp.createNative("/kit help", paperCommandManager);
-        help.setHelpColors(MinecraftHelp.HelpColors.of(
-                NamedTextColor.YELLOW,
-                NamedTextColor.GOLD,
-                NamedTextColor.YELLOW,
-                NamedTextColor.GRAY,
-                NamedTextColor.GOLD));
-        return help;
+    private MinecraftHelp<CommandSourceStack> buildHelpSystem() {
+        AudienceProvider<CommandSourceStack> audienceProvider = CommandSourceStack::getSender;
+        return MinecraftHelp.<CommandSourceStack>builder()
+                .commandManager(paperCommandManager)
+                .audienceProvider(audienceProvider)
+                .commandPrefix("/hit help")
+                .colors(MinecraftHelp.helpColors(
+                        NamedTextColor.YELLOW,
+                        NamedTextColor.GOLD,
+                        NamedTextColor.YELLOW,
+                        NamedTextColor.GRAY,
+                        NamedTextColor.GOLD
+                )).build();
     }
 
     @NotNull
-    private AnnotationParser<CommandSender> buildAnnotationParser() {
-        final Function<ParserParameters, CommandMeta> commandMetaFunction = p ->
-                CommandMeta.simple().with(CommandMeta.DESCRIPTION, p.get(StandardParameters.DESCRIPTION, "No description")).build();
-        return new AnnotationParser<>(paperCommandManager, CommandSender.class, commandMetaFunction);
+    private AnnotationParser<CommandSourceStack> buildAnnotationParser() {
+
+        return new AnnotationParser<>(paperCommandManager, CommandSourceStack.class);
     }
 
     @Nullable
-    private PaperCommandManager<CommandSender> buildCommandSystem() {
+    private PaperCommandManager<CommandSourceStack> buildCommandSystem() {
 
         try {
-            var commandManager = PaperCommandManager.createNative(this.plugin, CommandExecutionCoordinator.simpleCoordinator());
-            if (commandManager.hasCapability(CloudBukkitCapabilities.BRIGADIER)) {
-                commandManager.registerBrigadier();
-            }
-
-            if (commandManager.hasCapability(CloudBukkitCapabilities.ASYNCHRONOUS_COMPLETION)) {
-                commandManager.registerAsynchronousCompletions();
-            }
-
+            PaperCommandManager<CommandSourceStack> commandManager = PaperCommandManager.builder()
+                    .executionCoordinator(ExecutionCoordinator.simpleCoordinator())
+                    .buildOnEnable(this.plugin);
             return commandManager;
         } catch (final Exception e) {
             this.plugin.getLogger().warning("Failed to initialize Brigadier support: " + e.getMessage());

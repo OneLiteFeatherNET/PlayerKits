@@ -1,25 +1,27 @@
 package net.onelitefeather.playerkits.command;
 
-import cloud.commandframework.annotations.Argument;
-import cloud.commandframework.annotations.CommandDescription;
-import cloud.commandframework.annotations.CommandMethod;
-import cloud.commandframework.annotations.CommandPermission;
-import cloud.commandframework.annotations.specifier.Greedy;
+import io.papermc.paper.command.brigadier.CommandSourceStack;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.onelitefeather.playerkits.PlayerKitsPlugin;
 import net.onelitefeather.playerkits.kit.PlayerKit;
 import net.onelitefeather.playerkits.service.PlayerKitService;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.incendo.cloud.annotation.specifier.Greedy;
+import org.incendo.cloud.annotations.Argument;
+import org.incendo.cloud.annotations.Command;
+import org.incendo.cloud.annotations.CommandDescription;
+import org.incendo.cloud.annotations.Permission;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Objects;
 
 public record KitCommand(@NotNull PlayerKitsPlugin plugin, @NotNull PlayerKitService playerKitService) {
 
-    @CommandMethod("kit create <name>")
-    @CommandPermission("playerkits.command.kit.create")
+    @Command("kit create <name>")
+    @Permission("playerkits.command.kit.create")
     @CommandDescription("Create a new kit")
-    public void createKitCommand(Player player, @Argument("name") String name) {
-
+    public void createKitCommand(@NotNull Player player, @Argument("name") @Greedy String name) {
         if (this.playerKitService.existsPlayerKit(name)) {
             player.sendMessage(MiniMessage.miniMessage().deserialize("<lang:kit.already.exist:'%s':'%s'>".formatted(this.plugin.getPluginPrefix(), name)));
             return;
@@ -30,23 +32,23 @@ public record KitCommand(@NotNull PlayerKitsPlugin plugin, @NotNull PlayerKitSer
         player.sendMessage(MiniMessage.miniMessage().deserialize("<lang:kit.setup.help.previous-step:'%s'>".formatted(this.plugin.getPluginPrefix())));
     }
 
+    @Command("kit help [query]")
+    @Permission("playerkits.command.help")
     @CommandDescription("Shows the help menu")
-    @CommandMethod("kit help [query]")
-    @CommandPermission("playerkits.command.help")
-    private void helpCommand(CommandSender sender, final @Argument("query") @Greedy String query) {
+    private void helpCommand(CommandSourceStack sender, final @Argument("query") @Greedy String query) {
         this.plugin.getPaperCommandService().getMinecraftHelp().queryCommands(query == null ? "" : query, sender);
     }
 
-    @CommandMethod("kits")
+    @Command("kits")
+    @Permission("playerkits.command.kits")
     @CommandDescription("Open the kits overview")
-    @CommandPermission("playerkits.command.kits")
     public void execute(@NotNull Player player) {
         player.openInventory(this.playerKitService.getKitInventory());
     }
 
-    @CommandMethod("kit give <player> <kit>")
-    @CommandPermission("playerkits.command.give")
-    public void grantPlayerKit(CommandSender commandSender,
+    @Command("kit give <player> <kit>")
+    @Permission("playerkits.command.give")
+    public void grantPlayerKit(CommandSourceStack commandSender,
                                @Argument(value = "player") Player player,
                                @Argument(value = "kit", parserName = "playerKit") PlayerKit playerKit) {
 
@@ -54,8 +56,8 @@ public record KitCommand(@NotNull PlayerKitsPlugin plugin, @NotNull PlayerKitSer
         this.playerKitService.handleGrantKit(commandSender, player, playerKit);
     }
 
-    @CommandMethod("kit delete <name>")
-    @CommandPermission("playerkits.command.delete")
+    @Command("kit delete <name>")
+    @Permission("playerkits.command.delete")
     @CommandDescription("Delete a Kit")
     public void deleteKitCommand(@NotNull CommandSender commandSender,
                                  @NotNull @Argument(value = "name", parserName = "playerKit") PlayerKit playerKit) {
