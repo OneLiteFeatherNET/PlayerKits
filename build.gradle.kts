@@ -21,6 +21,9 @@ dependencies {
     // Paper
     compileOnly(libs.paper)
 
+    //Adventure (Bukkit)
+    implementation(libs.adventureBukkit)
+
     //Cloud command framework
     implementation(libs.cloudPaper)
     implementation(libs.cloudAnnotations)
