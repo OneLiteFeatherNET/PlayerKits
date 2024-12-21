@@ -265,7 +265,7 @@ public final class PlayerKitService {
         }
     }
 
-    private void kitGrantSuccess(@NotNull CommandSender commandSender,
+    public void kitGrantSuccess(@NotNull CommandSender commandSender,
                                  @NotNull Player target,
                                  @NotNull PlayerKit playerKit) {
 
