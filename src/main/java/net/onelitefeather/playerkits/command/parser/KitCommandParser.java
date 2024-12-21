@@ -7,10 +7,10 @@ import org.bukkit.util.StringUtil;
 import org.incendo.cloud.annotations.parser.Parser;
 import org.incendo.cloud.annotations.suggestion.Suggestions;
 import org.incendo.cloud.context.CommandContext;
+import org.incendo.cloud.context.CommandInput;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
-import java.util.Queue;
 
 public final class KitCommandParser {
 
@@ -21,9 +21,9 @@ public final class KitCommandParser {
     }
 
     @Parser(name = "playerKit", suggestions = "playerKits")
-    public @NotNull PlayerKit parsePlayerKit(CommandContext<CommandSender> commandSender, @NotNull Queue<String> input) {
+    public @NotNull PlayerKit parsePlayerKit(CommandContext<CommandSender> commandSender, @NotNull CommandInput input) {
 
-        var name = input.remove();
+        var name = input.readString();
         var playerKit = this.playerKitService.getPlayerKit(name);
 
         if (playerKit == null) {

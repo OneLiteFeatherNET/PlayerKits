@@ -35,7 +35,7 @@ public record KitCommand(@NotNull PlayerKitsPlugin plugin, @NotNull PlayerKitSer
     @Command("kit help [query]")
     @Permission("playerkits.command.help")
     @CommandDescription("Shows the help menu")
-    private void helpCommand(CommandSourceStack sender, final @Argument("query") @Greedy String query) {
+    private void helpCommand(CommandSender sender, final @Argument("query") @Greedy String query) {
         this.plugin.getPaperCommandService().getMinecraftHelp().queryCommands(query == null ? "" : query, sender);
     }
 
@@ -48,12 +48,12 @@ public record KitCommand(@NotNull PlayerKitsPlugin plugin, @NotNull PlayerKitSer
 
     @Command("kit give <player> <kit>")
     @Permission("playerkits.command.give")
-    public void grantPlayerKit(CommandSourceStack commandSender,
+    public void grantPlayerKit(CommandSender commandSender,
                                @Argument(value = "player") Player player,
                                @Argument(value = "kit", parserName = "playerKit") PlayerKit playerKit) {
 
         if (notExists(commandSender, playerKit)) return;
-        this.playerKitService.handleGrantKit(commandSender, player, playerKit);
+        this.playerKitService.kitGrantSuccess(commandSender, player, playerKit);
     }
 
     @Command("kit delete <name>")
