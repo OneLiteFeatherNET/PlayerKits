@@ -48,6 +48,7 @@ public record KitCommand(@NotNull PlayerKitsPlugin plugin, @NotNull PlayerKitSer
 
     @Command("kit give <player> <kit>")
     @Permission("playerkits.command.give")
+    @CommandDescription("Give a kit to a player")
     public void grantPlayerKit(CommandSender commandSender,
                                @Argument(value = "player") Player player,
                                @Argument(value = "kit", parserName = "playerKit") PlayerKit playerKit) {
