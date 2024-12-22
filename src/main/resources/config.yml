@@ -1,9 +1,4 @@
-database:
-  jdbcUrl: 'jdbc:mariadb://localhost:3306/playerkits?useSSL=false'
-  username: 'root'
-  password: '%Schueler90'
-  driver: 'org.mariadb.jdbc.Driver'
-  dialect: 'org.hibernate.dialect.MariaDBDialect'
+first-join-kit: 'firstjoin'
 items:
     open-last-inventory: '<red>Back</red>'
 gui:
