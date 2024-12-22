@@ -55,7 +55,7 @@ public class PaperCommandService {
         return MinecraftHelp.<CommandSender>builder()
                 .commandManager(this.paperCommandManager)
                 .audienceProvider(this.bukkitAudiences::sender)
-                .commandPrefix("/playerkits")
+                .commandPrefix("/kit help")
                 .colors(MinecraftHelp.helpColors(
                         NamedTextColor.YELLOW,
                         NamedTextColor.GOLD,
