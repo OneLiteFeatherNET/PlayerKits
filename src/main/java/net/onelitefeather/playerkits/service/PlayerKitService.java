@@ -23,7 +23,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -70,6 +69,7 @@ public final class PlayerKitService {
             session.remove(playerKit);
             transaction.commit();
             removeKitFromInventory(playerKit);
+            this.kitCache.invalidate(playerKit.getName());
             return true;
         } catch (HibernateException e) {
 
@@ -102,7 +102,6 @@ public final class PlayerKitService {
 
             transaction.commit();
             addKitToInventory(playerKit);
-
         } catch (HibernateException e) {
 
             if (transaction != null) {
@@ -128,6 +127,10 @@ public final class PlayerKitService {
 
     @Nullable
     public PlayerKit getPlayerKit(@NotNull String name) {
+
+        var kit = this.kitCache.getIfPresent(name);
+        if (kit != null) return kit;
+
         return this.plugin.getDatabaseService().getSessionFactory().map(SessionFactory::openSession).map(session -> {
             var query = session.createQuery("SELECT pt FROM PlayerKit pt JOIN FETCH pt.properties p WHERE pt.name = :name", PlayerKit.class);
             query.setParameter("name", name);
@@ -165,9 +168,8 @@ public final class PlayerKitService {
 
         switch (claimResult) {
 
-            case UNKNOWN_KIT ->
-                    commandSender.sendMessage(MiniMessage.miniMessage().deserialize(
-                            "<lang:kit.not-found:'%s':'%s'>".formatted(this.plugin.getPluginPrefix(), playerKit.getName())));
+            case UNKNOWN_KIT -> commandSender.sendMessage(MiniMessage.miniMessage().deserialize(
+                    "<lang:kit.not-found:'%s':'%s'>".formatted(this.plugin.getPluginPrefix(), playerKit.getName())));
 
             case ALREADY_CLAIMED -> {
 
@@ -183,7 +185,7 @@ public final class PlayerKitService {
             case SUCCESS -> kitGrantSuccess(commandSender, target, playerKit);
 
             case COOLDOWN_NOT_EXPIRED -> {
-                if(claimedKit.isEmpty()) return;
+                if (claimedKit.isEmpty()) return;
                 if (!commandSender.equals(target)) {
                     commandSender.sendMessage(MiniMessage.miniMessage().deserialize("<lang:cooldown-expires-at.other:'%s':'%s':'%s':'%s'>".formatted(
                             this.plugin.getPluginPrefix(),
@@ -266,8 +268,8 @@ public final class PlayerKitService {
     }
 
     public void kitGrantSuccess(@NotNull CommandSender commandSender,
-                                 @NotNull Player target,
-                                 @NotNull PlayerKit playerKit) {
+                                @NotNull Player target,
+                                @NotNull PlayerKit playerKit) {
 
         if (!InventoryUtil.hasInventorySpace(target.getInventory(), playerKit)) {
             commandSender.sendMessage(MiniMessage.miniMessage().deserialize(
