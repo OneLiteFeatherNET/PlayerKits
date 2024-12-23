@@ -1,24 +1,26 @@
 plugins {
-    id("java")
-    `java-library`
-    id("net.minecrell.plugin-yml.paper") version "0.6.0"
-    id("com.gradleup.shadow") version "9.0.0-beta4"
-    id("xyz.jpenilla.run-paper") version "2.3.1"
-    id("org.sonarqube") version "4.0.0.2929"
+    java
     jacoco
+    alias(libs.plugins.shadow)
+    alias(libs.plugins.publishdata)
+    alias(libs.plugins.runPaper)
+    alias(libs.plugins.pluginYml)
+    `maven-publish`
 }
 
-val baseVersion = "1.0.0"
 group = "net.onelitefeather"
+version = "1.0.0"
 
-repositories {
-    mavenCentral()
-    maven("https://repo.papermc.io/repository/maven-public/")
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(21))
+    }
 }
+
 
 dependencies {
-
-    // Paper
+// Paper
     compileOnly(libs.paper)
 
     //Adventure (Bukkit)
@@ -43,25 +45,19 @@ dependencies {
     testRuntimeOnly(libs.junitJupiterEngine)
 }
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
-}
-
 tasks {
 
     compileJava {
         options.encoding = "UTF-8"
         options.release.set(21)
     }
+    runServer {
+        minecraftVersion("1.21.1")
+        jvmArgs("-Xmx4G", "-Dcom.mojang.eula.agree=true")
+    }
 
     test {
         useJUnitPlatform()
-    }
-
-    runServer {
-        jvmArgs("-Dcom.mojang.eula.agree=true")
-        minecraftVersion("1.21.1")
     }
 
     shadowJar {
@@ -75,22 +71,44 @@ tasks {
         }
     }
 
-    getByName<org.sonarqube.gradle.SonarTask>("sonar") {
-        dependsOn(rootProject.tasks.test)
+}
+
+publishData {
+    addBuildData()
+    val projectId: String by project
+    val gitlabUrl: String by project
+    useGitlabReposForProject(projectId, gitlabUrl)
+    publishTask("shadowJar")
+}
+
+publishing {
+    publications.create<MavenPublication>("maven") {
+        // configure the publication as defined previously.
+        publishData.configurePublication(this)
+        version = publishData.getVersion(false)
+    }
+
+    repositories {
+        maven {
+            credentials(HttpHeaderCredentials::class) {
+                name = "Job-Token"
+                value = System.getenv("CI_JOB_TOKEN")
+            }
+            authentication {
+                create("header", HttpHeaderAuthentication::class)
+            }
+
+
+            name = "Gitlab"
+            // Get the detected repository from the publishing data
+            url = uri(publishData.getRepository())
+        }
     }
 }
 
 paper {
-
-    if (System.getenv().containsKey("CI")) {
-        version = "${rootProject.version}+${System.getenv("CI_COMMIT_SHORT_SHA")}"
-    }
-
-    name = rootProject.name
     main = "${rootProject.group}.playerkits.PlayerKitsPlugin"
     apiVersion = "1.20"
-    load = net.minecrell.pluginyml.bukkit.BukkitPluginDescription.PluginLoadOrder.POSTWORLD
-
     author = "theShadowsDust"
     authors = listOf("OneLiteFeather")
 
@@ -103,26 +121,5 @@ paper {
         register("Vault") {
             required = false
         }
-    }
-}
-
-version = if (System.getenv().containsKey("CI")) {
-    val releaseOrSnapshot = if (System.getenv("CI_COMMIT_BRANCH").equals("main", true)) {
-        ""
-    } else if(System.getenv("CI_COMMIT_BRANCH").equals("test", true)) {
-        "-PREVIEW"
-    } else {
-        "-SNAPSHOT"
-    }
-    "$baseVersion$releaseOrSnapshot+${System.getenv("CI_COMMIT_SHORT_SHA")}"
-} else {
-    "$baseVersion-SNAPSHOT"
-}
-
-
-sonarqube {
-    properties {
-        property("sonar.projectKey", "onelitefeather_projects_player-kits_AYUcL9fiZDfNdlYcbA_J")
-        property("sonar.qualitygate.wait", true)
     }
 }
