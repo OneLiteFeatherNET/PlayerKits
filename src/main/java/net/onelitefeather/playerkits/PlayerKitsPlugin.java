@@ -1,6 +1,7 @@
 package net.onelitefeather.playerkits;
 
 import net.kyori.adventure.key.Key;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.translation.GlobalTranslator;
 import net.kyori.adventure.translation.TranslationRegistry;
 import net.kyori.adventure.util.UTF8ResourceBundleControl;
@@ -114,7 +115,7 @@ public class PlayerKitsPlugin extends JavaPlugin {
         return kitSetupService;
     }
 
-    public String getPluginPrefix() {
-        return "<lang:prefix>";
+    public Component getPluginPrefix() {
+        return Component.translatable("prefix");
     }
 }

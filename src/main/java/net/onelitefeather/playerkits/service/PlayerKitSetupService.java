@@ -1,6 +1,7 @@
 package net.onelitefeather.playerkits.service;
 
 import io.papermc.paper.event.player.AsyncChatEvent;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.onelitefeather.playerkits.PlayerKitsPlugin;
@@ -40,8 +41,9 @@ public class PlayerKitSetupService implements Listener {
 
         if (text.equalsIgnoreCase("cancel")) {
             this.setupMap.remove(player);
-            player.sendMessage(MiniMessage.miniMessage().deserialize(
-                    "<lang:kit.setup.cancelled:'%s':'%s'>".formatted(this.plugin.getPluginPrefix(), setup.getKitName())));
+
+            player.sendMessage(Component.translatable("kit.setup.cancelled")
+                    .arguments(this.plugin.getPluginPrefix(), Component.text(setup.getKitName())));
             return;
         } else if (text.equalsIgnoreCase("prev")) {
             setup.previousStep(player);
@@ -85,7 +87,7 @@ public class PlayerKitSetupService implements Listener {
                 stepName = setup.getCurrentStep().getName();
 
                 if(this.plugin.getPlayerKitService().getPlayerKit(material != null ? material : Material.GRASS_BLOCK) != null) {
-                    player.sendMessage(MiniMessage.miniMessage().deserialize("<lang:kit.display-item-already-exists:'%s'>".formatted(this.plugin.getPluginPrefix())));
+                    player.sendMessage(Component.translatable("kit.display-item-already-exists").arguments(this.plugin.getPluginPrefix()));
                     return;
                 }
 
@@ -106,9 +108,8 @@ public class PlayerKitSetupService implements Listener {
                 sendSetupFeedBack(player, value, stepName);
                 setup.setDone(player, KitSetupStep.DISPLAY_NAME, value, null);
 
-                player.sendMessage(MiniMessage.miniMessage().deserialize(
-                        "<lang:commands.playerkit.create.success:'%s':'%s'>".formatted(
-                                this.plugin.getPluginPrefix(), setup.getKitName())));
+                player.sendMessage(Component.translatable("commands.playerkit.create.success")
+                        .arguments(this.plugin.getPluginPrefix(), Component.text(setup.getKitName())));
 
                 this.plugin.getPlayerKitService().createKit(setup.createKit(player.getInventory().getContents()));
                 this.setupMap.remove(player);
@@ -117,8 +118,10 @@ public class PlayerKitSetupService implements Listener {
     }
 
     private void sendSetupFeedBack(Player player, Object value, String stepName) {
-        player.sendMessage(MiniMessage.miniMessage().deserialize(
-                "<lang:kit.setup.value-set:'%s':'%s':'%s'>".formatted(this.plugin.getPluginPrefix(), stepName, value)));
+        player.sendMessage(Component.translatable("kit.setup.value-set").arguments(
+                        this.plugin.getPluginPrefix(),
+                        Component.text(stepName),
+                        Component.text(value.toString())));
     }
 
     public void addSetup(@NotNull Player player, @NotNull String name) {

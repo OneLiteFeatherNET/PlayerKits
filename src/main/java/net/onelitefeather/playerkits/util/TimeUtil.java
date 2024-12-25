@@ -1,5 +1,7 @@
 package net.onelitefeather.playerkits.util;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TranslationArgument;
 import net.onelitefeather.playerkits.service.ClaimedKitService;
 import org.jetbrains.annotations.NotNull;
 
@@ -16,28 +18,27 @@ public final class TimeUtil {
      * @return A Human read-able timestamp.
      */
     @NotNull
-    public static String getRemainingTime(long end) {
+    public static Component getRemainingTime(long end) {
 
         long diff = ceilDiv(end - System.currentTimeMillis(), 1000L);
-        String remainingTime;
-
         if (diff > 60 * 60 * 24) {
-
-            remainingTime = "<lang:remaining-time-days:'%s':'%s':'%s':'%s'>".formatted(
-                    diff / 60 / 60 / 24,
-                    diff / 60 / 60 % 24,
-                    diff / 60 % 60,
-                    diff % 60);
-
+            return Component.translatable("remaining-time-days")
+                    .arguments(TranslationArgument.numeric(diff / 60 / 60 / 24),
+                            TranslationArgument.numeric(diff / 60 / 60 % 24),
+                            TranslationArgument.numeric(diff / 60 % 60),
+                            TranslationArgument.numeric(diff % 60));
         } else if (diff > 60 * 60) {
-            remainingTime = "<lang:remaining-time-days:'%s':'%s':'%s'>".formatted(diff / 60 / 60, diff / 60 % 60, diff % 60);
+            return Component.translatable("remaining-time-hours")
+                    .arguments(TranslationArgument.numeric(diff / 60 / 60),
+                            TranslationArgument.numeric(diff / 60 % 60),
+                            TranslationArgument.numeric(diff % 60));
         } else if (diff > 60) {
-            remainingTime = "<lang:remaining-time-days:'%s':'%s'>".formatted(diff / 60, diff % 60);
+            return Component.translatable("remaining-time-minutes")
+                    .arguments(TranslationArgument.numeric(diff / 60),
+                            TranslationArgument.numeric(diff % 60));
         } else {
-            remainingTime = "<lang:remaining-time-days:'%s'>".formatted(diff);
+            return Component.translatable("remaining-time-seconds").arguments(TranslationArgument.numeric(diff));
         }
-
-        return remainingTime;
     }
 
     public static long ceilDiv(long x, long y) {

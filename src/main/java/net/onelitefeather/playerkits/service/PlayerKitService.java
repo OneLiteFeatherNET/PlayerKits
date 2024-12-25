@@ -4,7 +4,6 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.onelitefeather.playerkits.PlayerKitsPlugin;
 import net.onelitefeather.playerkits.kit.PlayerKit;
 import net.onelitefeather.playerkits.registry.ItemRegistry;
@@ -25,7 +24,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
@@ -168,36 +166,35 @@ public final class PlayerKitService {
 
         switch (claimResult) {
 
-            case UNKNOWN_KIT -> commandSender.sendMessage(MiniMessage.miniMessage().deserialize(
-                    "<lang:kit.not-found:'%s':'%s'>".formatted(this.plugin.getPluginPrefix(), playerKit.getName())));
+            case UNKNOWN_KIT -> commandSender.sendMessage(Component.translatable("kit.not-found")
+                    .arguments(this.plugin.getPluginPrefix(), Component.text(playerKit.getName())));
 
             case ALREADY_CLAIMED -> {
 
                 if (!commandSender.equals(target)) {
-                    commandSender.sendMessage(MiniMessage.miniMessage().deserialize(
-                            "<lang:kit.grant.player-has-already-claimed:'%s':'%s'>".formatted(
-                                    this.plugin.getPluginPrefix(), target.displayName())));
+                    commandSender.sendMessage(Component.translatable("kit.grant.player-has-already-claimed")
+                            .arguments(this.plugin.getPluginPrefix(), target.displayName()));
                 }
 
-                target.sendMessage(MiniMessage.miniMessage().deserialize(
-                        "<lang:kit.grant.already-claimed:'%s'>".formatted(this.plugin.getPluginPrefix())));
+                target.sendMessage(Component.translatable("kit.grant.already-claimed")
+                        .arguments(this.plugin.getPluginPrefix()));
             }
             case SUCCESS -> kitGrantSuccess(commandSender, target, playerKit);
 
             case COOLDOWN_NOT_EXPIRED -> {
                 if (claimedKit.isEmpty()) return;
                 if (!commandSender.equals(target)) {
-                    commandSender.sendMessage(MiniMessage.miniMessage().deserialize("<lang:cooldown-expires-at.other:'%s':'%s':'%s':'%s'>".formatted(
+                    commandSender.sendMessage(Component.translatable("cooldown-expires-at.other").arguments(
                             this.plugin.getPluginPrefix(),
-                            playerKit.getName(),
+                            Component.text(playerKit.getName()),
                             TimeUtil.getRemainingTime(claimedKit.get().getCooldown()),
-                            target.displayName())));
+                            target.displayName()));
                 }
 
-                target.sendMessage(MiniMessage.miniMessage().deserialize("<lang:cooldown-expires-at.self:'%s':'%s':'%s'>".formatted(
+                target.sendMessage(Component.translatable("cooldown-expires-at.self").arguments(
                         this.plugin.getPluginPrefix(),
-                        playerKit.getName(),
-                        TimeUtil.getRemainingTime(claimedKit.get().getCooldown()))));
+                        Component.text(playerKit.getName()),
+                        TimeUtil.getRemainingTime(claimedKit.get().getCooldown())));
             }
 
             default ->
@@ -272,9 +269,8 @@ public final class PlayerKitService {
                                 @NotNull PlayerKit playerKit) {
 
         if (!InventoryUtil.hasInventorySpace(target.getInventory(), playerKit)) {
-            commandSender.sendMessage(MiniMessage.miniMessage().deserialize(
-                    "<lang:inventory.not-enough-space:'%s':'%s'>".formatted(
-                            this.plugin.getPluginPrefix(), target.displayName())));
+            commandSender.sendMessage(Component.translatable("inventory.not-enough-space").arguments(
+                    this.plugin.getPluginPrefix(), target.displayName()));
             return;
         }
 
@@ -284,31 +280,19 @@ public final class PlayerKitService {
                 target.getInventory().addItem(itemStack);
             }
 
-            if (commandSender instanceof Player player && !commandSender.equals(target)) {
-
-                commandSender.sendMessage(MiniMessage.miniMessage().deserialize(
-                        "<lang:kit.grant.other.success:'%s':'%s':'%s'".formatted(
-                                this.plugin.getPluginPrefix(),
-                                playerKit.getDisplayName(),
-                                player.displayName())));
-
-                return;
+            if (!commandSender.equals(target)) {
+                commandSender.sendMessage(Component.translatable("kit.grant.other.success").arguments(
+                        this.plugin.getPluginPrefix(), playerKit.displayName(), target.displayName()));
             }
 
-            target.sendMessage(MiniMessage.miniMessage().deserialize("<lang:kit.grant.success:'%s':'%s'>".
-                    formatted(this.plugin.getPluginPrefix(), playerKit.getDisplayName())));
+            target.sendMessage(Component.translatable("kit.grant.success").arguments(
+                    this.plugin.getPluginPrefix(), playerKit.displayName()));
         }
     }
 
     private void buildInventories() {
-        this.kitInventory = this.plugin.getServer().createInventory(null, 45,
-                LegacyComponentSerializer.legacyAmpersand().deserialize(
-                        this.plugin.getConfig().getString("gui.title", "Kit Overview")));
-
-        this.kitPreviewInventory = plugin.getServer().createInventory(null, 45,
-                LegacyComponentSerializer.legacySection().deserialize(
-                        this.plugin.getConfig().getString("gui.preview-title", "Kit Preview")));
-
+        this.kitInventory = this.plugin.getServer().createInventory(null, 45, Component.translatable("gui.kits.title"));
+        this.kitPreviewInventory = plugin.getServer().createInventory(null, 45, Component.translatable("gui.kitPreview.title"));
         for (int border : BORDERS) {
             this.kitInventory.setItem(border, BORDER_ITEM);
         }

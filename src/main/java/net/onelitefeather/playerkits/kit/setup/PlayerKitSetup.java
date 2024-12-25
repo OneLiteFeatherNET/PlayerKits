@@ -1,5 +1,7 @@
 package net.onelitefeather.playerkits.kit.setup;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TranslationArgument;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.onelitefeather.playerkits.kit.PlayerKit;
 import net.onelitefeather.playerkits.kit.property.PlayerKitProperties;
@@ -42,12 +44,11 @@ public final class PlayerKitSetup {
 
     public void setCurrentStep(@NotNull Player player, @NotNull KitSetupStep currentStep) {
         this.currentStep = currentStep;
-        player.sendMessage(MiniMessage.miniMessage().deserialize(
-                "<lang:kit.setup.current-step:'%s':'%s':'%s':'%s'>".formatted(
-                currentStep.getId(),
-                currentStep.getName(),
-                currentStep.getType(),
-                currentStep.getDefaultValue())));
+        player.sendMessage(Component.translatable("kit.setup.current-step")
+                .arguments(TranslationArgument.numeric(currentStep.getId()),
+                        Component.text(currentStep.getName()),
+                        Component.text(currentStep.getType()),
+                        Component.text(currentStep.getDefaultValue().toString())));
     }
 
     public void previousStep(@NotNull Player player) {

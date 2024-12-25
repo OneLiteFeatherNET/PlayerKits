@@ -1,7 +1,6 @@
 package net.onelitefeather.playerkits.listener;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.onelitefeather.playerkits.PlayerKitsPlugin;
 import net.onelitefeather.playerkits.kit.PlayerKit;
 import net.onelitefeather.playerkits.service.PlayerKitService;
@@ -71,8 +70,8 @@ public record InventoryListener(@NotNull PlayerKitsPlugin plugin,
 
         var playerKit = this.playerKitService.getPlayerKit(itemStack.getType());
         if (playerKit == null) {
-            player.sendMessage(MiniMessage.miniMessage().deserialize("<lang:kit.not-found:'%s':'%s'>".
-                    formatted(this.plugin.getPluginPrefix(), getDisplayName(itemStack))));
+            player.sendMessage(Component.translatable("kit.not-found")
+                    .arguments(this.plugin.getPluginPrefix(), getDisplayName(itemStack)));
             return;
         }
 

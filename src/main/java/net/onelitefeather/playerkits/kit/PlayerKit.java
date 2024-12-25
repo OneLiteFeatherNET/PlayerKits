@@ -1,6 +1,8 @@
 package net.onelitefeather.playerkits.kit;
 
 import jakarta.persistence.*;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.onelitefeather.playerkits.kit.property.PlayerKitProperties;
 import org.jetbrains.annotations.NotNull;
 
@@ -49,6 +51,11 @@ public final class PlayerKit {
 
     public void setName(@NotNull String name) {
         this.name = name;
+    }
+
+    @NotNull
+    public Component displayName() {
+        return MiniMessage.miniMessage().deserialize(getDisplayName());
     }
 
     @NotNull

@@ -1,7 +1,6 @@
 package net.onelitefeather.playerkits.command;
 
-import io.papermc.paper.command.brigadier.CommandSourceStack;
-import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.Component;
 import net.onelitefeather.playerkits.PlayerKitsPlugin;
 import net.onelitefeather.playerkits.kit.PlayerKit;
 import net.onelitefeather.playerkits.service.PlayerKitService;
@@ -14,8 +13,6 @@ import org.incendo.cloud.annotations.CommandDescription;
 import org.incendo.cloud.annotations.Permission;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Objects;
-
 public record KitCommand(@NotNull PlayerKitsPlugin plugin, @NotNull PlayerKitService playerKitService) {
 
     @Command("kit create <name>")
@@ -23,13 +20,13 @@ public record KitCommand(@NotNull PlayerKitsPlugin plugin, @NotNull PlayerKitSer
     @CommandDescription("Create a new kit")
     public void createKitCommand(@NotNull Player player, @Argument("name") @Greedy String name) {
         if (this.playerKitService.existsPlayerKit(name)) {
-            player.sendMessage(MiniMessage.miniMessage().deserialize("<lang:kit.already.exist:'%s':'%s'>".formatted(this.plugin.getPluginPrefix(), name)));
+            player.sendMessage(Component.translatable("kit.already.exist").arguments(this.plugin.getPluginPrefix(), Component.text(name)));
             return;
         }
 
         this.plugin.getKitSetupService().addSetup(player, name);
-        player.sendMessage(MiniMessage.miniMessage().deserialize("<lang:kit.setup.help.cancel:'%s'>".formatted(this.plugin.getPluginPrefix())));
-        player.sendMessage(MiniMessage.miniMessage().deserialize("<lang:kit.setup.help.previous-step:'%s'>".formatted(this.plugin.getPluginPrefix())));
+        player.sendMessage(Component.translatable("kit.setup.help.cancel").arguments(this.plugin.getPluginPrefix()));
+        player.sendMessage(Component.translatable("kit.setup.help.previous-step").arguments(this.plugin.getPluginPrefix()));
     }
 
     @Command("kit help [query]")
@@ -65,18 +62,21 @@ public record KitCommand(@NotNull PlayerKitsPlugin plugin, @NotNull PlayerKitSer
 
         if (notExists(commandSender, playerKit)) return;
         if (this.playerKitService.deleteKit(playerKit)) {
-            commandSender.sendMessage(MiniMessage.miniMessage().deserialize(
-                    "<lang:commands.playerkit.delete.success:'%s':'%s'>".formatted(this.plugin.getPluginPrefix(), playerKit.getName())));
+
+            commandSender.sendMessage(Component.translatable("commands.playerkit.delete.success")
+                    .arguments(this.plugin.getPluginPrefix(), Component.text(playerKit.getName())));
+
         } else {
-            commandSender.sendMessage(MiniMessage.miniMessage().deserialize(
-                    "<lang:commands.playerkit.delete.failure:'%s':'%s'>".formatted(this.plugin.getPluginPrefix(), playerKit.getName())));
+            commandSender.sendMessage(Component.translatable("commands.playerkit.delete.failure")
+                    .arguments(this.plugin.getPluginPrefix(), Component.text(playerKit.getName())));
         }
     }
 
     private boolean notExists(CommandSender commandSender, PlayerKit playerKit) {
 
         if (!this.playerKitService.existsPlayerKit(playerKit.getName())) {
-            commandSender.sendMessage(MiniMessage.miniMessage().deserialize("<lang:kit.not-found:'%s':'%s'>".formatted(this.plugin.getPluginPrefix(), playerKit.getName())));
+            commandSender.sendMessage(Component.translatable("kit.not-found")
+                    .arguments(this.plugin.getPluginPrefix(), Component.text(playerKit.getName())));
             return true;
         }
 
