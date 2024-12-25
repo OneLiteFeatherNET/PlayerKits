@@ -1,6 +1,6 @@
 package net.onelitefeather.playerkits.registry;
 
-import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.onelitefeather.playerkits.PlayerKitsPlugin;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -53,7 +53,8 @@ public final class ItemRegistry {
     public void build() {
         ItemStack openLastInventoryItem = new ItemStack(Material.RED_DYE);
         ItemMeta itemMeta = openLastInventoryItem.getItemMeta();
-        itemMeta.displayName(Component.translatable("gui.item.back"));
+        itemMeta.displayName(MiniMessage.miniMessage().deserialize(
+                plugin.getConfig().getString("items.open-last-inventory", openLastInventoryItem.getType().toString())));
         openLastInventoryItem.setItemMeta(itemMeta);
         this.items.put(OPEN_LAST_INVENTORY, openLastInventoryItem);
     }

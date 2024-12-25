@@ -1,1 +1,9 @@
 first-join-kit: 'firstjoin'
+items:
+    open-last-inventory: '<red>Back</red>'
+gui:
+  title: 'Kit Overview'
+  preview-title: 'Kit Preview'
+  item-description:
+    - '<yellow>Left-click</yellow> <gray>to <green>claim</green> kit</gray>'
+    - '<yellow>Right-click</yellow> <gray>to open a kit preview</gray>'

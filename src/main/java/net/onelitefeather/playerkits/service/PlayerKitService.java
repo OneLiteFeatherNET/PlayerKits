@@ -40,11 +40,17 @@ public final class PlayerKitService {
     private final PlayerKitsPlugin plugin;
     private Inventory kitPreviewInventory;
     private Inventory kitInventory;
+    private final List<Component> kitItemDescription;
 
     public PlayerKitService(@NotNull PlayerKitsPlugin plugin) {
+
         this.plugin = plugin;
         buildInventories();
         loadKits();
+        this.kitItemDescription = new ArrayList<>();
+        for (String description : plugin.getConfig().getStringList("gui.item-description")) {
+            this.kitItemDescription.add(MiniMessage.miniMessage().deserialize(description));
+        }
     }
 
     public boolean deleteKit(@NotNull PlayerKit playerKit) {
@@ -248,13 +254,7 @@ public final class PlayerKitService {
         this.kitInventory.setItem(slot,
                 InventoryUtil.createItem(
                         playerKit.getProperties().getDisplayItem(),
-                        MiniMessage.miniMessage().deserialize(playerKit.getDisplayName()), getKitItemDescription()));
-    }
-
-    private List<Component> getKitItemDescription() {
-        return List.of(
-                Component.translatable("gui.claimKit.description"),
-                Component.translatable("gui.previewKit.description"));
+                        MiniMessage.miniMessage().deserialize(playerKit.getDisplayName()), this.kitItemDescription));
     }
 
     private void loadKits() {
