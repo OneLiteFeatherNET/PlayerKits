@@ -19,7 +19,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Level;
 
 public final class InventoryUtil {
@@ -69,20 +71,9 @@ public final class InventoryUtil {
      */
     @NotNull
     public static Integer getInventoryFreeSpace(@NotNull Inventory inventory, @NotNull PlayerKit playerKit) {
-
         var kitContents = getContents(playerKit.getItems());
-        int freeSpace = 0;
-
-        for (ItemStack itemStack : inventory.getContents()) {
-            if (itemStack != null) continue;
-            freeSpace++;
-        }
-
-        if (freeSpace < kitContents.length) {
-            return -1;
-        }
-
-        return freeSpace;
+        int freeSpace = (int) Arrays.stream(inventory.getStorageContents()).filter(Objects::isNull).count();
+        return freeSpace <= kitContents.length ? -1 : freeSpace;
     }
 
     public static @NotNull ItemStack[] deserializeInventory(@NotNull InputStream inputStream) {
