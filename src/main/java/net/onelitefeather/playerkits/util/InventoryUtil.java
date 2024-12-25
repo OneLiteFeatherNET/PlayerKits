@@ -13,7 +13,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -68,8 +72,9 @@ public final class InventoryUtil {
 
         var kitContents = getContents(playerKit.getItems());
         int freeSpace = 0;
-        for (ItemStack itemStack : inventory.getStorageContents()) {
-            if (itemStack != null && itemStack.getAmount() == itemStack.getMaxStackSize()) continue;
+
+        for (ItemStack itemStack : inventory.getContents()) {
+            if (itemStack != null) continue;
             freeSpace++;
         }
 
@@ -123,7 +128,7 @@ public final class InventoryUtil {
     }
 
     @NotNull
-    public static ItemStack[] getContents(@Nullable ItemStack @NotNull[] itemStacks) {
+    public static ItemStack[] getContents(@Nullable ItemStack @NotNull [] itemStacks) {
 
         List<ItemStack> list = new ArrayList<>();
         for (ItemStack itemStack : itemStacks) {
