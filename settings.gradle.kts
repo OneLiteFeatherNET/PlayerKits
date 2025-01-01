@@ -65,7 +65,7 @@ dependencyResolutionManagement {
             library("adventureBukkit", "net.kyori", "adventure-platform-bukkit").version("4.3.4")
 
             //Cloud command framework
-            library("cloudPaper", "org.incendo", "cloud-paper").version("2.0.0-beta.10")
+            library("cloudPaper", "org.incendo", "cloud-paper").version("2.0.0-SNAPSHOT")
             library("cloudAnnotations", "org.incendo", "cloud-annotations").version("2.0.0")
             library("cloudExtras", "org.incendo", "cloud-minecraft-extras").version("2.0.0-beta.10")
             library("commodore", "me.lucko", "commodore").version("2.2")
