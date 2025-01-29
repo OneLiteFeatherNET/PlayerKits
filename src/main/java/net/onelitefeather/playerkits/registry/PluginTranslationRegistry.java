@@ -1,4 +1,4 @@
-package net.onelitefeather.playerkits.util;
+package net.onelitefeather.playerkits.registry;
 
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
@@ -15,11 +15,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-public final class LynxWrapper implements Translator {
+public final class PluginTranslationRegistry implements Translator {
 
     private final TranslationRegistry translator;
 
-    public LynxWrapper(@NotNull TranslationRegistry translator) {
+    public PluginTranslationRegistry(@NotNull TranslationRegistry translator) {
         this.translator = translator;
     }
 
@@ -38,10 +38,10 @@ public final class LynxWrapper implements Translator {
 
         var miniMessageResult = this.translate(component.key(), locale);
         if (miniMessageResult == null) return null;
-        var values = new String[component.args().size()];
+        var values = new String[component.arguments().size()];
 
         for (int i = 0; i < values.length; i++) {
-            values[i] = MiniMessage.miniMessage().serialize(GlobalTranslator.render(component.args().get(i), locale));
+            values[i] = MiniMessage.miniMessage().serialize(GlobalTranslator.render(component.arguments().get(i).asComponent(), locale));
         }
 
         var resultComponent = MiniMessage.miniMessage().deserialize(miniMessageResult.format(values));

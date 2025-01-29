@@ -121,7 +121,7 @@ public class PlayerKitSetupService implements Listener {
         player.sendMessage(Component.translatable("kit.setup.value-set").arguments(
                         this.plugin.getPluginPrefix(),
                         Component.text(stepName),
-                        Component.text(value.toString())));
+                        MiniMessage.miniMessage().deserialize(value.toString())));
     }
 
     public void addSetup(@NotNull Player player, @NotNull String name) {

@@ -13,7 +13,7 @@ import net.onelitefeather.playerkits.service.DatabaseService;
 import net.onelitefeather.playerkits.service.PaperCommandService;
 import net.onelitefeather.playerkits.service.PlayerKitService;
 import net.onelitefeather.playerkits.service.PlayerKitSetupService;
-import net.onelitefeather.playerkits.util.LynxWrapper;
+import net.onelitefeather.playerkits.registry.PluginTranslationRegistry;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.hibernate.SessionFactory;
@@ -25,7 +25,7 @@ import java.util.ResourceBundle;
 
 public class PlayerKitsPlugin extends JavaPlugin {
 
-    private static final List<Locale> SUPPORTED_LOCALS = List.of(Locale.US);
+    private static final List<Locale> SUPPORTED_LOCALS = List.of(Locale.US, Locale.GERMANY);
 
     private PlayerKitService playerKitService;
     private ItemRegistry itemRegistry;
@@ -35,7 +35,7 @@ public class PlayerKitsPlugin extends JavaPlugin {
     private ClaimedKitService claimedKitService;
     private DatabaseService databaseService;
 
-    private LynxWrapper lynxWrapper;
+    private PluginTranslationRegistry pluginTranslationRegistry;
 
     @Override
     public void onEnable() {
@@ -66,8 +66,8 @@ public class PlayerKitsPlugin extends JavaPlugin {
         });
 
         registry.defaultLocale(SUPPORTED_LOCALS.getFirst());
-        this.lynxWrapper = new LynxWrapper(registry);
-        GlobalTranslator.translator().addSource(lynxWrapper);
+        this.pluginTranslationRegistry = new PluginTranslationRegistry(registry);
+        GlobalTranslator.translator().addSource(pluginTranslationRegistry);
 
         pluginManager.registerEvents(new InventoryListener(this, this.playerKitService), this);
         pluginManager.registerEvents(new PlayerConnectionListener(this, this.playerKitService), this);
@@ -80,8 +80,8 @@ public class PlayerKitsPlugin extends JavaPlugin {
             this.databaseService.getSessionFactory().ifPresent(SessionFactory::close);
         }
 
-        if (this.lynxWrapper != null) {
-            GlobalTranslator.translator().removeSource(lynxWrapper);
+        if (this.pluginTranslationRegistry != null) {
+            GlobalTranslator.translator().removeSource(pluginTranslationRegistry);
         }
     }
 
