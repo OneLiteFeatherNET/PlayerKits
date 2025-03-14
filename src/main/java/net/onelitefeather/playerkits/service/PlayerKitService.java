@@ -275,14 +275,12 @@ public final class PlayerKitService {
         }
 
         if (claimKit(target, playerKit)) {
+            target.getInventory().addItem(InventoryUtil.getContents(playerKit.getItems()));
+            if (commandSender instanceof Player player && !commandSender.equals(target)) {
 
-            for (ItemStack itemStack : InventoryUtil.getContents(playerKit.getItems())) {
-                target.getInventory().addItem(itemStack);
-            }
-
-            if (!commandSender.equals(target)) {
                 commandSender.sendMessage(Component.translatable("kit.grant.other.success").arguments(
                         this.plugin.getPluginPrefix(), playerKit.displayName(), target.displayName()));
+                return;
             }
 
             target.sendMessage(Component.translatable("kit.grant.success").arguments(
