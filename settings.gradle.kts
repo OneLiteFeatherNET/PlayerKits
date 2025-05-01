@@ -47,7 +47,7 @@ dependencyResolutionManagement {
             library("postgresql", "org.postgresql", "postgresql").versionRef("postgresql")
 
             //Testing
-            library("junitJupiterApi", "org.junit.jupiter", "junit-jupiter-api").version("5.11.4")
+            library("junitJupiterApi", "org.junit.jupiter", "junit-jupiter-api").version("5.12.2")
             library("junitJupiterEngine", "org.junit.jupiter", "junit-jupiter-engine").withoutVersion()
 
             bundle("hibernate", listOf("hibernateCore", "hibernateHikariCP"))
