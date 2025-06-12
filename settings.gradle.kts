@@ -29,7 +29,7 @@ dependencyResolutionManagement {
 
             //Paper
             library("paper", "io.papermc.paper", "paper-api").version("1.21.1-R0.1-SNAPSHOT")
-            library("adventureBukkit", "net.kyori", "adventure-platform-bukkit").version("4.3.4")
+            library("adventureBukkit", "net.kyori", "adventure-platform-bukkit").version("4.4.0")
 
             //Cloud command framework
             library("cloudPaper", "org.incendo", "cloud-paper").version("2.0.0-SNAPSHOT")
