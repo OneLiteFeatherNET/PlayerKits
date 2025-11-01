@@ -20,7 +20,7 @@ dependencyResolutionManagement {
             version("publishdata", "1.4.0")
             version("shadow", "9.2.2")
             version("pluginYml", "0.6.0")
-            version("runPaper", "2.3.1")
+            version("runPaper", "3.0.2")
 
 
             version("hibernate", "7.1.2.Final")
