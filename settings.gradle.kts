@@ -38,7 +38,7 @@ dependencyResolutionManagement {
             library("commodore", "me.lucko", "commodore").version("2.2")
 
             //Caching
-            library("caffeine", "com.github.ben-manes.caffeine", "caffeine").version("3.2.2")
+            library("caffeine", "com.github.ben-manes.caffeine", "caffeine").version("3.2.3")
 
             // Database
             library("hibernateCore", "org.hibernate", "hibernate-core").versionRef("hibernate")
