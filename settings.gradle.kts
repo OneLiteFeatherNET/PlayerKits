@@ -18,7 +18,7 @@ dependencyResolutionManagement {
     versionCatalogs {
         create("libs") {
             version("publishdata", "1.4.0")
-            version("shadow", "9.2.2")
+            version("shadow", "9.3.2")
             version("pluginYml", "0.6.0")
             version("runPaper", "3.0.2")
 
