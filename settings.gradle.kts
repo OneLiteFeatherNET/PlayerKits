@@ -28,7 +28,7 @@ dependencyResolutionManagement {
             version("postgresql", "42.7.10")
 
             //Paper
-            library("paper", "io.papermc.paper", "paper-api").version("1.21.1-R0.1-SNAPSHOT")
+            library("paper", "io.papermc.paper", "paper-api").version("26.1.2.build.69-stable")
             library("adventureBukkit", "net.kyori", "adventure-platform-bukkit").version("4.4.1")
 
             //Cloud command framework
