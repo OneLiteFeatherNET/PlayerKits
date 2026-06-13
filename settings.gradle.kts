@@ -18,17 +18,17 @@ dependencyResolutionManagement {
     versionCatalogs {
         create("libs") {
             version("publishdata", "1.4.0")
-            version("shadow", "9.4.1")
+            version("shadow", "9.4.2")
             version("pluginYml", "0.6.0")
             version("runPaper", "3.0.2")
 
 
-            version("hibernate", "7.2.6.Final")
-            version("jaxbRuntime", "4.0.6")
-            version("postgresql", "42.7.10")
+            version("hibernate", "7.4.1.Final")
+            version("jaxbRuntime", "4.0.9")
+            version("postgresql", "42.7.11")
 
             //Paper
-            library("paper", "io.papermc.paper", "paper-api").version("1.21.1-R0.1-SNAPSHOT")
+            library("paper", "io.papermc.paper", "paper-api").version("26.1.2.build.+")
             library("adventureBukkit", "net.kyori", "adventure-platform-bukkit").version("4.4.1")
 
             //Cloud command framework
@@ -38,16 +38,16 @@ dependencyResolutionManagement {
             library("commodore", "me.lucko", "commodore").version("2.2")
 
             //Caching
-            library("caffeine", "com.github.ben-manes.caffeine", "caffeine").version("3.2.3")
+            library("caffeine", "com.github.ben-manes.caffeine", "caffeine").version("3.2.4")
 
             // Database
-            library("hibernateCore", "org.hibernate", "hibernate-core").versionRef("hibernate")
-            library("hibernateHikariCP", "org.hibernate", "hibernate-hikaricp").versionRef("hibernate")
+            library("hibernateCore", "org.hibernate.orm", "hibernate-core").versionRef("hibernate")
+            library("hibernateHikariCP", "org.hibernate.orm", "hibernate-hikaricp").versionRef("hibernate")
             library("jaxbRuntime", "org.glassfish.jaxb", "jaxb-runtime").versionRef("jaxbRuntime")
             library("postgresql", "org.postgresql", "postgresql").versionRef("postgresql")
 
             //Testing
-            library("junitJupiterApi", "org.junit.jupiter", "junit-jupiter-api").version("6.0.3")
+            library("junitJupiterApi", "org.junit.jupiter", "junit-jupiter-api").version("6.1.0")
             library("junitJupiterEngine", "org.junit.jupiter", "junit-jupiter-engine").withoutVersion()
 
             bundle("hibernate", listOf("hibernateCore", "hibernateHikariCP"))

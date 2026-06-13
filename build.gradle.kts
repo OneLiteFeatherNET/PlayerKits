@@ -14,7 +14,7 @@ version = "1.0.0"
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(21))
+        languageVersion.set(JavaLanguageVersion.of(25))
     }
 }
 
@@ -47,12 +47,8 @@ dependencies {
 
 tasks {
 
-    compileJava {
-        options.encoding = "UTF-8"
-        options.release.set(21)
-    }
     runServer {
-        minecraftVersion("1.21.1")
+        minecraftVersion("26.1.2")
         jvmArgs("-Xmx4G", "-Dcom.mojang.eula.agree=true")
     }
 
