@@ -13,7 +13,6 @@ import org.incendo.cloud.SenderMapper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-@SuppressWarnings("UnstableApiUsage")
 public final class BukkitSenderMapper implements SenderMapper<CommandSourceStack, CommandSender> {
 
     private final ConsoleSenderMapper consoleSenderMapper = new ConsoleSenderMapper();
@@ -50,7 +49,19 @@ public final class BukkitSenderMapper implements SenderMapper<CommandSourceStack
 
         @Override
         public @Nullable Entity getExecutor() {
-            return null;
+            return null; // Block command senders do not have an associated entity.
+        }
+
+        @Override
+        @NotNull
+        public CommandSourceStack withLocation(@NotNull Location location) {
+            return this; //Not needed for block command senders.
+        }
+
+        @Override
+        @NotNull
+        public CommandSourceStack withExecutor(@NotNull Entity executor) {
+            return this;
         }
     }
 
@@ -70,6 +81,18 @@ public final class BukkitSenderMapper implements SenderMapper<CommandSourceStack
         public @Nullable Entity getExecutor() {
             return null;
         }
+
+        @Override
+        @NotNull
+        public CommandSourceStack withLocation(@NotNull Location location) {
+            throw new UnsupportedOperationException("Cannot change location of console sender");
+        }
+
+        @Override
+        @NotNull
+        public CommandSourceStack withExecutor(@NotNull Entity executor) {
+            return this;
+        }
     }
 
     private record PlayerSenderMapper(Player player) implements CommandSourceStack {
@@ -86,6 +109,18 @@ public final class BukkitSenderMapper implements SenderMapper<CommandSourceStack
         @Override
         public @Nullable Entity getExecutor() {
             return this.player;
+        }
+
+        @Override
+        @NotNull
+        public CommandSourceStack withLocation(@NotNull Location location) {
+            return this;
+        }
+
+        @Override
+        @NotNull
+        public CommandSourceStack withExecutor(@NotNull Entity executor) {
+            return this;
         }
     }
 }
