@@ -34,7 +34,7 @@ public final class PlayerKitService {
 
     private final LoadingCache<String, PlayerKit> kitCache = Caffeine.newBuilder()
             .maximumSize(1000)
-            .expireAfterWrite(5, TimeUnit.MINUTES)
+            .expireAfterAccess(5, TimeUnit.MINUTES)
             .build(this::getPlayerKit);
 
     private final PlayerKitsPlugin plugin;
@@ -46,7 +46,6 @@ public final class PlayerKitService {
 
         this.plugin = plugin;
         buildInventories();
-        loadKits();
         this.kitItemDescription = new ArrayList<>();
         for (String description : plugin.getConfig().getStringList("gui.item-description")) {
             this.kitItemDescription.add(MiniMessage.miniMessage().deserialize(description));
@@ -66,7 +65,6 @@ public final class PlayerKitService {
             session.remove(playerKit.getProperties());
             session.remove(playerKit);
             transaction.commit();
-            removeKitFromInventory(playerKit);
             this.kitCache.invalidate(playerKit.getName());
             return true;
         } catch (HibernateException e) {
@@ -110,9 +108,11 @@ public final class PlayerKitService {
         }
     }
 
-    @Nullable
-    public PlayerKit getFirstJoinKit() {
-        return getPlayerKit(this.plugin.getConfig().getString("first-join-kit", "firstjoin"));
+    public List<PlayerKit> getFirstJoinKits() {
+        return this.plugin.getDatabaseService().getSessionFactory().map(SessionFactory::openSession).map(session -> {
+            var query = session.createQuery("SELECT pt FROM PlayerKit pt JOIN FETCH pt.properties p WHERE pt.firstJoin = true", PlayerKit.class);
+            return query.list();
+        }).orElse(Collections.emptyList());
     }
 
     @NotNull
@@ -241,27 +241,27 @@ public final class PlayerKitService {
         return kitPreviewInventory;
     }
 
-    private void removeKitFromInventory(@NotNull PlayerKit playerKit) {
-        this.kitInventory.remove(playerKit.getProperties().getDisplayItem());
-    }
 
     private void addKitToInventory(@NotNull PlayerKit playerKit) {
 
         if (!playerKit.isVisible()) return;
-        var slot = this.kitInventory.firstEmpty();
-        if (slot == -1L) return;
 
-        this.kitInventory.setItem(slot,
-                InventoryUtil.createItem(
-                        playerKit.getProperties().getDisplayItem(),
-                        MiniMessage.miniMessage().deserialize(playerKit.getDisplayName()), this.kitItemDescription));
+        var kitMaterial = playerKit.getProperties().getDisplayItem();
+        if (this.kitInventory.contains(kitMaterial)) return;
+
+        this.kitInventory.addItem(InventoryUtil.createItem(
+                playerKit.getProperties().getDisplayItem(),
+                MiniMessage.miniMessage().deserialize(playerKit.getDisplayName()), this.kitItemDescription));
     }
 
-    private void loadKits() {
+    public void giveFirstJoinKits(Player player) {
+        getFirstJoinKits().forEach(playerKit -> handleGrantKit(player, player, playerKit));
+    }
+
+    public void openKitsInventory(Player player) {
         var kits = getKits();
-        for (PlayerKit kit : kits) {
-            addKitToInventory(kit);
-        }
+        kits.forEach(this::addKitToInventory);
+        player.openInventory(this.getKitInventory());
     }
 
     public void kitGrantSuccess(@NotNull CommandSender commandSender,
