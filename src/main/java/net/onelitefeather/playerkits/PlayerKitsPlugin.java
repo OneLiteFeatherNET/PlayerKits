@@ -2,9 +2,8 @@ package net.onelitefeather.playerkits;
 
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.translation.MiniMessageTranslationStore;
 import net.kyori.adventure.translation.GlobalTranslator;
-import net.kyori.adventure.translation.TranslationRegistry;
-import net.kyori.adventure.util.UTF8ResourceBundleControl;
 import net.onelitefeather.playerkits.listener.InventoryListener;
 import net.onelitefeather.playerkits.listener.PlayerConnectionListener;
 import net.onelitefeather.playerkits.registry.ItemRegistry;
@@ -13,7 +12,6 @@ import net.onelitefeather.playerkits.service.DatabaseService;
 import net.onelitefeather.playerkits.service.PaperCommandService;
 import net.onelitefeather.playerkits.service.PlayerKitService;
 import net.onelitefeather.playerkits.service.PlayerKitSetupService;
-import net.onelitefeather.playerkits.registry.PluginTranslationRegistry;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.hibernate.SessionFactory;
@@ -35,7 +33,7 @@ public class PlayerKitsPlugin extends JavaPlugin {
     private ClaimedKitService claimedKitService;
     private DatabaseService databaseService;
 
-    private PluginTranslationRegistry pluginTranslationRegistry;
+    private MiniMessageTranslationStore translationStore;
 
     @Override
     public void onEnable() {
@@ -59,15 +57,14 @@ public class PlayerKitsPlugin extends JavaPlugin {
         this.paperCommandService = new PaperCommandService(this);
         this.paperCommandService.registerCommands();
 
-        var registry = TranslationRegistry.create(Key.key("playerkits", "localization"));
-        SUPPORTED_LOCALS.forEach(locale -> {
-            var bundle = ResourceBundle.getBundle("playerkits", locale, UTF8ResourceBundleControl.get());
-            registry.registerAll(locale, bundle, false);
-        });
+        this.translationStore = MiniMessageTranslationStore.create(Key.key("playerkits", "translations"));
+        this.translationStore.defaultLocale(SUPPORTED_LOCALS.getFirst());
+        GlobalTranslator.translator().addSource(this.translationStore);
 
-        registry.defaultLocale(SUPPORTED_LOCALS.getFirst());
-        this.pluginTranslationRegistry = new PluginTranslationRegistry(registry);
-        GlobalTranslator.translator().addSource(pluginTranslationRegistry);
+        SUPPORTED_LOCALS.forEach(locale -> this.translationStore.registerAll(
+                locale,
+                ResourceBundle.getBundle("playerkits", locale),
+                false));
 
         pluginManager.registerEvents(new InventoryListener(this, this.playerKitService), this);
         pluginManager.registerEvents(new PlayerConnectionListener(this, this.playerKitService), this);
@@ -80,9 +77,7 @@ public class PlayerKitsPlugin extends JavaPlugin {
             this.databaseService.getSessionFactory().ifPresent(SessionFactory::close);
         }
 
-        if (this.pluginTranslationRegistry != null) {
-            GlobalTranslator.translator().removeSource(pluginTranslationRegistry);
-        }
+        if (this.translationStore != null) GlobalTranslator.translator().removeSource(translationStore);
     }
 
     @NotNull
