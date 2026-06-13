@@ -40,7 +40,7 @@ public record KitCommand(@NotNull PlayerKitsPlugin plugin, @NotNull PlayerKitSer
     @Permission("playerkits.command.kits")
     @CommandDescription("Open the kits overview")
     public void execute(@NotNull Player player) {
-        player.openInventory(this.playerKitService.getKitInventory());
+        this.playerKitService.openKitsInventory(player);
     }
 
     @Command("kit give <player> <kit>")

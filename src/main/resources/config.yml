@@ -1,4 +1,3 @@
-first-join-kit: 'firstjoin'
 items:
     open-last-inventory: '<red>Back</red>'
 gui:
