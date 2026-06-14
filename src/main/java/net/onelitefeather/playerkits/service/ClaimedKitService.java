@@ -18,7 +18,7 @@ import java.util.logging.Level;
 public final class ClaimedKitService {
 
     public static final Long IGNORE_COOLDOWN = -1L;
-    private static final String KIT_NAME_PARAMETER = "kitName";
+    private static final String KIT_NAME_PARAMETER = "kitId";
     private static final String CLAIMED_BY_PARAMETER = "claimedBy";
     private final PlayerKitsPlugin plugin;
 
@@ -35,20 +35,20 @@ public final class ClaimedKitService {
         }).orElseGet(ArrayList::new);
     }
 
-    public Optional<ClaimedKit> getClaimedKit(@NotNull String kitName, @NotNull UUID claimedBy) {
+    public Optional<ClaimedKit> getClaimedKit(@NotNull Long kitId, @NotNull UUID claimedBy) {
         return this.plugin.getDatabaseService().getSessionFactory().map(SessionFactory::openSession).map(session -> {
-            var query = session.createQuery("SELECT ck FROM ClaimedKit ck WHERE ck.kitName = :kitName AND ck.claimedBy = :claimedBy", ClaimedKit.class);
-            query.setParameter(KIT_NAME_PARAMETER, kitName);
+            var query = session.createQuery("SELECT ck FROM ClaimedKit ck WHERE ck.kitId = :kitId AND ck.claimedBy = :claimedBy", ClaimedKit.class);
+            query.setParameter(KIT_NAME_PARAMETER, kitId);
             query.setParameter(CLAIMED_BY_PARAMETER, claimedBy.toString());
             return query.uniqueResult();
         });
     }
 
     @NotNull
-    public KitClaimResult canClaim(@NotNull UUID claimedBy, @NotNull String kitName) {
+    public KitClaimResult canClaim(@NotNull UUID claimedBy, @NotNull Long kitId) {
 
-        var claimedKit = getClaimedKit(kitName, claimedBy);
-        var playerKit = plugin.getPlayerKitService().getPlayerKit(kitName);
+        var claimedKit = getClaimedKit(kitId, claimedBy);
+        var playerKit = plugin.getPlayerKitService().getPlayerKit(kitId);
         if (playerKit == null) return KitClaimResult.UNKNOWN_KIT;
 
         var offlinePlayer = plugin.getServer().getOfflinePlayer(claimedBy);
@@ -61,16 +61,8 @@ public final class ClaimedKitService {
         return System.currentTimeMillis() > claimedKit.get().getCooldown() ? KitClaimResult.SUCCESS : KitClaimResult.COOLDOWN_NOT_EXPIRED;
     }
 
-    public boolean claimKit(@NotNull String kitName,
-                            @NotNull UUID claimedBy,
-                            @NotNull Boolean firstJoin,
-                            @NotNull Boolean oneTime,
-                            @NotNull Long claimedAt,
-                            @NotNull Long cooldown) {
 
-        var claimedKit = getClaimedKit(kitName, claimedBy);
-        if (claimedKit.isPresent()) return !firstJoin || !oneTime || cooldown.equals(IGNORE_COOLDOWN);
-
+    public boolean updateClaimedKit(ClaimedKit claimedKit) {
         Transaction transaction = null;
 
         var sessionFactory = this.plugin.getDatabaseService().getSessionFactory();
@@ -78,27 +70,45 @@ public final class ClaimedKitService {
 
         try (Session session = sessionFactory.get().openSession()) {
             transaction = session.beginTransaction();
-
-            ClaimedKit kit = new ClaimedKit();
-            kit.setKitName(kitName);
-            kit.setClaimedByUniqueId(claimedBy);
-            kit.setClaimedAt(claimedAt);
-            kit.setFirstJoin(firstJoin);
-            kit.setCooldown(cooldown);
-            kit.setOneTime(oneTime);
-
-            session.persist(kit);
+            session.merge(claimedKit);
             transaction.commit();
-
             return true;
         } catch (HibernateException e) {
-
-            if (transaction != null) {
-                transaction.rollback();
-            }
-
-            this.plugin.getLogger().log(Level.SEVERE, "Cannot save claimed kit called %s".formatted(kitName), e);
+            if (transaction != null) transaction.rollback();
+            this.plugin.getLogger().log(Level.SEVERE, "Cannot update claimed kit called %s".formatted(claimedKit.getKitId()), e);
             return false;
         }
+    }
+
+    public boolean saveClaimedKit(ClaimedKit claimedKit) {
+        Transaction transaction = null;
+
+        var sessionFactory = this.plugin.getDatabaseService().getSessionFactory();
+        if (sessionFactory.isEmpty()) return false;
+
+        try (Session session = sessionFactory.get().openSession()) {
+            transaction = session.beginTransaction();
+            session.persist(claimedKit);
+            transaction.commit();
+            return true;
+        } catch (HibernateException e) {
+            if (transaction != null) transaction.rollback();
+            this.plugin.getLogger().log(Level.SEVERE, "Cannot save claimed kit called %s".formatted(claimedKit.getKitId()), e);
+            return false;
+        }
+    }
+
+    public boolean claimKit(@NotNull Long kitId,
+                            @NotNull UUID claimedBy,
+                            @NotNull Boolean firstJoin,
+                            @NotNull Boolean oneTime,
+                            @NotNull Long claimedAt,
+                            @NotNull Long cooldown) {
+
+        var claimedKit = getClaimedKit(kitId, claimedBy);
+        if (claimedKit.isPresent()) return updateClaimedKit(claimedKit.get());
+
+        var kit = new ClaimedKit(null, claimedBy.toString(), kitId, firstJoin, oneTime, claimedAt, cooldown);
+        return saveClaimedKit(kit);
     }
 }
