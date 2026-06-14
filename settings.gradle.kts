@@ -1,11 +1,4 @@
 rootProject.name = "PlayerKits"
-pluginManagement {
-    repositories {
-        gradlePluginPortal()
-        maven("https://eldonexus.de/repository/maven-public/")
-    }
-}
-
 
 dependencyResolutionManagement {
     repositories {
@@ -17,7 +10,6 @@ dependencyResolutionManagement {
 
     versionCatalogs {
         create("libs") {
-            version("publishdata", "1.4.0")
             version("shadow", "9.4.2")
             version("pluginYml", "0.6.0")
             version("runPaper", "3.0.2")
@@ -53,7 +45,6 @@ dependencyResolutionManagement {
             bundle("hibernate", listOf("hibernateCore", "hibernateHikariCP"))
 
             plugin("shadow", "com.gradleup.shadow").versionRef("shadow")
-            plugin("publishdata", "de.chojo.publishdata").versionRef("publishdata")
             plugin("pluginYml", "net.minecrell.plugin-yml.paper").versionRef("pluginYml")
             plugin("runPaper", "xyz.jpenilla.run-paper").versionRef("runPaper")
         }
