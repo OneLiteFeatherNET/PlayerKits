@@ -7,7 +7,7 @@
   "pull-request-header": "",
   "packages": {
     ".": {
-      "package-name": "titan",
+      "package-name": "playerkits",
       "changelog-path": "CHANGELOG.md",
       "extra-files": [
         "gradle.properties"
