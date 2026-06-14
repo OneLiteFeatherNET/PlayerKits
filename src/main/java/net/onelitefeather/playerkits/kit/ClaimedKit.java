@@ -7,7 +7,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 @Entity
-@Table
+@Table(name = "claimed_kits")
 public class ClaimedKit {
 
     @Id
