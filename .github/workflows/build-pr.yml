@@ -1,20 +1,11 @@
 name: Build PR
 on: [pull_request]
+
 jobs:
-  build_pr:
-    if: github.repository_owner == 'OneLiteFeatherNET'
-    name: Build Pull Request Branch
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
-      - name: Setup Java
-        uses: actions/setup-java@v5
-        with:
-          distribution: temurin
-          java-version: 25
-      - name: Build on ${{ matrix.os }}
-        run: ./gradlew clean build
+  build:
+    uses: OneLiteFeatherNET/workflows/.github/workflows/gradle-build-pr.yml@v2.1.0
+    # Match the runtime LTS JDK (Temurin 25.0.3) used by the publish pipeline.
+    with:
+      java-version: "25.0.3"
+      java-distribution: "temurin"
+    secrets: inherit
