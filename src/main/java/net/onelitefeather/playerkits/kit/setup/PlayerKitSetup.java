@@ -77,8 +77,7 @@ public final class PlayerKitSetup {
         var displayItemStep = KitSetupStep.DISPLAY_ITEM;
 
         kit.setDisplayName((String) this.values.getOrDefault(displayNameStep.getId(), kitName));
-        kit.setItems(InventoryUtil.serializeInventoryToString(items));
-
+        kit.setContents(ItemStack.serializeItemsAsBytes(items));
         var properties = new PlayerKitProperties();
         properties.setOneTime((Boolean) this.values.getOrDefault(oneTimeStep.getId(), oneTimeStep.getDefaultValue()));
         properties.setFirstJoin((Boolean) this.values.getOrDefault(firstJoinStep.getId(), firstJoinStep.getDefaultValue()));

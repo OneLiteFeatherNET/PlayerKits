@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.onelitefeather.playerkits.kit.property.PlayerKitProperties;
+import net.onelitefeather.playerkits.util.InventoryUtil;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 @Entity
@@ -14,8 +16,9 @@ public final class PlayerKit {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(columnDefinition = "TEXT")
-    private String items;
+    @Lob
+    @Column(name = "kit_content", columnDefinition = "longblob")
+    private byte[] contents;
 
     @Column
     private String name;
@@ -35,13 +38,12 @@ public final class PlayerKit {
         this.id = id;
     }
 
-    @NotNull
-    public String getItems() {
-        return items;
+    public void setContents(byte[] contents) {
+        this.contents = contents;
     }
 
-    public void setItems(@NotNull String items) {
-        this.items = items;
+    public byte[] getContents() {
+        return contents;
     }
 
     @NotNull

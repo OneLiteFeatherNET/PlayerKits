@@ -1,7 +1,5 @@
 package net.onelitefeather.playerkits.service;
 
-import com.github.benmanes.caffeine.cache.Caffeine;
-import com.github.benmanes.caffeine.cache.LoadingCache;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.onelitefeather.playerkits.PlayerKitsPlugin;
@@ -24,7 +22,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 
 public final class PlayerKitService {
@@ -32,19 +30,16 @@ public final class PlayerKitService {
     private static final int[] BORDERS = new int[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 36, 37, 38, 39, 40, 41, 42, 43, 44, 9, 18, 27, 17, 26, 35};
     private static final ItemStack BORDER_ITEM = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
 
-    private final LoadingCache<String, PlayerKit> kitCache = Caffeine.newBuilder()
-            .maximumSize(1000)
-            .expireAfterAccess(5, TimeUnit.MINUTES)
-            .build(this::getPlayerKit);
-
     private final PlayerKitsPlugin plugin;
     private Inventory kitPreviewInventory;
     private Inventory kitInventory;
-    private final List<Component> kitItemDescription;
+    private List<Component> kitItemDescription;
 
     public PlayerKitService(@NotNull PlayerKitsPlugin plugin) {
-
         this.plugin = plugin;
+    }
+
+    public void init() {
         buildInventories();
         this.kitItemDescription = new ArrayList<>();
         for (String description : plugin.getConfig().getStringList("gui.item-description")) {
@@ -65,7 +60,6 @@ public final class PlayerKitService {
             session.remove(playerKit.getProperties());
             session.remove(playerKit);
             transaction.commit();
-            this.kitCache.invalidate(playerKit.getName());
             return true;
         } catch (HibernateException e) {
 
@@ -110,7 +104,7 @@ public final class PlayerKitService {
 
     public List<PlayerKit> getFirstJoinKits() {
         return this.plugin.getDatabaseService().getSessionFactory().map(SessionFactory::openSession).map(session -> {
-            var query = session.createQuery("SELECT pt FROM PlayerKit pt JOIN FETCH pt.properties p WHERE pt.firstJoin = true", PlayerKit.class);
+            var query = session.createQuery("SELECT pt FROM PlayerKit pt JOIN FETCH pt.properties p WHERE p.firstJoin = true", PlayerKit.class);
             return query.list();
         }).orElse(Collections.emptyList());
     }
@@ -123,46 +117,37 @@ public final class PlayerKitService {
         }).orElse(Collections.emptyList());
     }
 
+    public PlayerKit getPlayerKit(@NotNull Long kitId) {
+        return this.plugin.getDatabaseService().getSessionFactory().map(SessionFactory::openSession).map(session -> {
+            var query = session.createQuery("SELECT pt FROM PlayerKit pt JOIN FETCH pt.properties p WHERE pt.id = :id", PlayerKit.class);
+            query.setParameter("id", kitId);
+            return query.uniqueResult();
+        }).orElse(null);
+    }
+
     @Nullable
     public PlayerKit getPlayerKit(@NotNull String name) {
-
-        var kit = this.kitCache.getIfPresent(name);
-        if (kit != null) return kit;
-
         return this.plugin.getDatabaseService().getSessionFactory().map(SessionFactory::openSession).map(session -> {
             var query = session.createQuery("SELECT pt FROM PlayerKit pt JOIN FETCH pt.properties p WHERE pt.name = :name", PlayerKit.class);
             query.setParameter("name", name);
-
-            var result = query.uniqueResult();
-            if (result != null) {
-                this.kitCache.put(name, result);
-            }
-
-            return result;
+            return query.uniqueResult();
         }).orElse(null);
     }
 
     @Nullable
     public PlayerKit getPlayerKit(@NotNull Material material) {
-
         return this.plugin.getDatabaseService().getSessionFactory().map(SessionFactory::openSession).map(session -> {
             var query = session.createQuery("SELECT pt FROM PlayerKit pt JOIN FETCH pt.properties p WHERE p.displayItem = :displayItem", PlayerKit.class);
             query.setParameter("displayItem", material);
-
-            var result = query.uniqueResult();
-            if (result != null) {
-                this.kitCache.put(result.getName(), result);
-            }
-
-            return result;
+            return query.uniqueResult();
         }).orElse(null);
     }
 
 
     public void handleGrantKit(@NotNull CommandSender commandSender, @NotNull Player target, @NotNull PlayerKit playerKit) {
 
-        var claimedKit = this.plugin.getClaimedKitService().getClaimedKit(playerKit.getName(), target.getUniqueId());
-        var claimResult = this.plugin.getClaimedKitService().canClaim(target.getUniqueId(), playerKit.getName());
+        var claimedKit = this.plugin.getClaimedKitService().getClaimedKit(playerKit.getId(), target.getUniqueId());
+        var claimResult = this.plugin.getClaimedKitService().canClaim(target.getUniqueId(), playerKit.getId());
 
         switch (claimResult) {
 
@@ -204,7 +189,7 @@ public final class PlayerKitService {
 
     public void previewKit(@NotNull Player player, @NotNull PlayerKit playerKit) {
 
-        this.kitPreviewInventory.setContents(InventoryUtil.deserializeInventoryFromString(playerKit.getItems()));
+        this.kitPreviewInventory.setContents(ItemStack.deserializeItemsFromBytes(playerKit.getContents()));
         this.kitPreviewInventory.setItem(this.kitPreviewInventory.getSize() - 1
                 , this.plugin.getItemRegistry().getItem(ItemRegistry.OPEN_LAST_INVENTORY));
 
@@ -241,7 +226,6 @@ public final class PlayerKitService {
         return kitPreviewInventory;
     }
 
-
     private void addKitToInventory(@NotNull PlayerKit playerKit) {
 
         if (!playerKit.isVisible()) return;
@@ -255,10 +239,15 @@ public final class PlayerKitService {
     }
 
     public void giveFirstJoinKits(Player player) {
-        getFirstJoinKits().forEach(playerKit -> handleGrantKit(player, player, playerKit));
+        Predicate<PlayerKit> filterNotClaimedKits = playerKit ->
+                this.plugin.getClaimedKitService().getClaimedKit(playerKit.getId(), player.getUniqueId()).isEmpty();
+
+        getFirstJoinKits().stream().filter(filterNotClaimedKits).forEach(playerKit -> kitGrantSuccess(player, player, playerKit));
     }
 
     public void openKitsInventory(Player player) {
+        this.kitInventory.clear();
+        drawKitInventoryBorder();
         var kits = getKits();
         kits.forEach(this::addKitToInventory);
         player.openInventory(this.getKitInventory());
@@ -275,7 +264,7 @@ public final class PlayerKitService {
         }
 
         if (claimKit(target, playerKit)) {
-            target.getInventory().addItem(InventoryUtil.getContents(playerKit.getItems()));
+            target.getInventory().addItem(ItemStack.deserializeItemsFromBytes(playerKit.getContents()));
             if (commandSender instanceof Player player && !commandSender.equals(target)) {
 
                 commandSender.sendMessage(Component.translatable("kit.grant.other.success").arguments(
@@ -291,6 +280,10 @@ public final class PlayerKitService {
     private void buildInventories() {
         this.kitInventory = this.plugin.getServer().createInventory(null, 45, Component.translatable("gui.kits.title"));
         this.kitPreviewInventory = plugin.getServer().createInventory(null, 45, Component.translatable("gui.kitPreview.title"));
+        drawKitInventoryBorder();
+    }
+
+    private void drawKitInventoryBorder() {
         for (int border : BORDERS) {
             this.kitInventory.setItem(border, BORDER_ITEM);
         }
@@ -298,11 +291,11 @@ public final class PlayerKitService {
 
     private boolean claimKit(@NotNull Player player, @NotNull PlayerKit playerKit) {
         return this.plugin.getClaimedKitService().claimKit(
-                playerKit.getName(),
+                playerKit.getId(),
                 player.getUniqueId(),
                 playerKit.isFirstJoin(),
                 playerKit.isOneTime(),
                 System.currentTimeMillis(),
-                playerKit.getCooldownTime());
+                System.currentTimeMillis() + playerKit.getCooldownTime());
     }
 }
