@@ -1,20 +1,21 @@
 # docker compose up -d
 services:
-  postgres:
-    image: postgres
-    container_name: 'player_kits_postgresql'
+  mariadb:
+    image: mariadb
+    container_name: 'player_kits_mariadb'
     ports:
-      - 5432:5432
+      - "3306:3306"
     shm_size: 128mb
     volumes:
-      - ./postgresql/data/:/var/lib/postgresql
+      - ./mariadb/data/:/var/lib/mysql
     environment:
-      POSTGRES_PASSWORD: playerkits
-      POSTGRES_USER: playerkits
-      POSTGRES_DB: playerkits
+      MARIADB_ROOT_PASSWORD: playerkits
+      MARIADB_USER: playerkits
+      MARIADB_PASSWORD: playerkits
+      MARIADB_DATABASE: playerkits
     networks:
-      - player_kits_postgresql_go_net
+      - player_kits_mariadb_net
 
 networks:
-  player_kits_postgresql_go_net:
+  player_kits_mariadb_net:
     driver: bridge
