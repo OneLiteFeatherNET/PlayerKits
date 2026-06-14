@@ -2,6 +2,7 @@ package net.onelitefeather.playerkits.kit;
 
 import jakarta.persistence.*;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -18,7 +19,7 @@ public class ClaimedKit {
     private String claimedBy;
 
     @Column
-    private String kitName;
+    private Long kitId;
 
     @Column
     private Boolean firstJoin;
@@ -35,16 +36,16 @@ public class ClaimedKit {
     public ClaimedKit() {
     }
 
-    public ClaimedKit(@NotNull Long id,
+    public ClaimedKit(@Nullable Long id,
                       @NotNull String claimedBy,
-                      @NotNull String kitName,
+                      @NotNull Long kitId,
                       @NotNull Boolean firstJoin,
                       @NotNull Boolean oneTime,
                       @NotNull Long claimedAt,
                       @NotNull Long cooldown) {
         this.id = id;
         this.claimedBy = claimedBy;
-        this.kitName = kitName;
+        this.kitId = kitId;
         this.firstJoin = firstJoin;
         this.oneTime = oneTime;
         this.claimedAt = claimedAt;
@@ -79,12 +80,12 @@ public class ClaimedKit {
     }
 
     @NotNull
-    public String getKitName() {
-        return kitName;
+    public Long getKitId() {
+        return kitId;
     }
 
-    public void setKitName(@NotNull String kitName) {
-        this.kitName = kitName;
+    public void setKitId(@NotNull Long kitId) {
+        this.kitId = kitId;
     }
 
     @NotNull
@@ -129,7 +130,7 @@ public class ClaimedKit {
         return "ClaimedKit{" +
                 "id=" + id +
                 ", claimedBy='" + claimedBy + '\'' +
-                ", kitName='" + kitName + '\'' +
+                ", kitName='" + kitId + '\'' +
                 '}';
     }
 
@@ -140,7 +141,7 @@ public class ClaimedKit {
 
         if (!Objects.equals(id, that.id)) return false;
         if (!Objects.equals(claimedBy, that.claimedBy)) return false;
-        if (!Objects.equals(kitName, that.kitName)) return false;
+        if (!Objects.equals(kitId, that.kitId)) return false;
         if (!Objects.equals(firstJoin, that.firstJoin)) return false;
         if (!Objects.equals(oneTime, that.oneTime)) return false;
         if (!Objects.equals(claimedAt, that.claimedAt)) return false;
@@ -151,7 +152,7 @@ public class ClaimedKit {
     public int hashCode() {
         int result = id != null ? id.hashCode() : 0;
         result = 31 * result + (claimedBy != null ? claimedBy.hashCode() : 0);
-        result = 31 * result + (kitName != null ? kitName.hashCode() : 0);
+        result = 31 * result + (kitId != null ? kitId.hashCode() : 0);
         result = 31 * result + (firstJoin != null ? firstJoin.hashCode() : 0);
         result = 31 * result + (oneTime != null ? oneTime.hashCode() : 0);
         result = 31 * result + (claimedAt != null ? claimedAt.hashCode() : 0);
