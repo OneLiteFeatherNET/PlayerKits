@@ -56,7 +56,7 @@ public final class TimeUtil {
         if (s.equalsIgnoreCase(ClaimedKitService.IGNORE_COOLDOWN.toString())) return ClaimedKitService.IGNORE_COOLDOWN;
         String[] sl = s.toLowerCase().split(VALID_TIME_PATTERN);
         long i = Long.parseLong(sl[0]);
-        return System.currentTimeMillis() + switch (sl[1]) {
+        return switch (sl[1]) {
             case "s" -> i * 1000;
             case "m" -> i * 1000 * 60;
             case "h" -> i * 1000 * 60 * 60;
