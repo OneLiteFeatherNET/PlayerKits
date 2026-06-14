@@ -106,7 +106,12 @@ public final class ClaimedKitService {
                             @NotNull Long cooldown) {
 
         var claimedKit = getClaimedKit(kitId, claimedBy);
-        if (claimedKit.isPresent()) return updateClaimedKit(claimedKit.get());
+        if (claimedKit.isPresent()) {
+            var kit = claimedKit.get();
+            kit.setCooldown(cooldown);
+            kit.setClaimedAt(claimedAt);
+            return updateClaimedKit(kit);
+        }
 
         var kit = new ClaimedKit(null, claimedBy.toString(), kitId, firstJoin, oneTime, claimedAt, cooldown);
         return saveClaimedKit(kit);
