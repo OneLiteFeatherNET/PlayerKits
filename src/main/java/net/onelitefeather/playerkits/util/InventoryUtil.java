@@ -1,22 +1,16 @@
 package net.onelitefeather.playerkits.util;
 
 import net.kyori.adventure.text.Component;
-import net.onelitefeather.playerkits.PlayerKitsPlugin;
 import net.onelitefeather.playerkits.kit.PlayerKit;
 import org.bukkit.Material;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.util.io.BukkitObjectInputStream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.logging.Level;
 
 public final class InventoryUtil {
 
@@ -54,24 +48,9 @@ public final class InventoryUtil {
     @NotNull
     public static Integer getInventoryFreeSpace(@NotNull Inventory inventory, @NotNull PlayerKit playerKit) {
         var kitContents = ItemStack.deserializeItemsFromBytes(playerKit.getContents());
-//        var kitContents = InventoryUtil.deserializeInventoryFromString(playerKit.getItems());
-        int freeSpace = (int) Arrays.stream(inventory.getStorageContents()).filter(Objects::isNull).count();
-        return freeSpace <= kitContents.length ? -1 : freeSpace;
-    }
+        var items = Arrays.stream(kitContents).map(ItemStack::getType).filter(material -> !material.isAir()).map(Enum::toString).toList();
 
-    @Deprecated(forRemoval = true, since = "1.0.0")
-    public static @NotNull ItemStack[] deserializeInventory(@NotNull InputStream inputStream) {
-        ItemStack[] itemStacks = new ItemStack[0];
-        try (BukkitObjectInputStream dataInput = new BukkitObjectInputStream(inputStream)) {
-            int size = dataInput.readInt();
-            itemStacks = new ItemStack[size];
-            for (int i = 0; i < size; i++) {
-                itemStacks[i] = (ItemStack) dataInput.readObject();
-            }
-            return itemStacks;
-        } catch (IOException | ClassNotFoundException e) {
-            JavaPlugin.getPlugin(PlayerKitsPlugin.class).getLogger().log(Level.SEVERE, "Unable to load item stacks.", e);
-        }
-        return itemStacks;
+        int freeSpace = (int) Arrays.stream(inventory.getStorageContents()).filter(Objects::isNull).count();
+        return freeSpace < items.size() ? -1 : freeSpace;
     }
 }
