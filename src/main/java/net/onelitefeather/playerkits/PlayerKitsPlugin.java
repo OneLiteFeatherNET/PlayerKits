@@ -51,7 +51,10 @@ public class PlayerKitsPlugin extends JavaPlugin {
         this.itemRegistry = new ItemRegistry(this);
 
         this.claimedKitService = new ClaimedKitService(this);
+
         this.playerKitService = new PlayerKitService(this);
+        this.playerKitService.init();
+
         this.kitSetupService = new PlayerKitSetupService(this);
 
         this.paperCommandService = new PaperCommandService(this);
