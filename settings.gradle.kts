@@ -15,7 +15,7 @@ dependencyResolutionManagement {
             version("runPaper", "3.0.2")
 
 
-            version("hibernate", "7.4.2.Final")
+            version("hibernate", "7.4.3.Final")
             version("jaxbRuntime", "4.0.9")
             version("postgresql", "42.7.11")
 
