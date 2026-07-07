@@ -17,7 +17,7 @@ dependencyResolutionManagement {
 
             version("hibernate", "7.4.4.Final")
             version("jaxbRuntime", "4.0.9")
-            version("postgresql", "42.7.12")
+            version("postgresql", "42.7.13")
 
             //Paper
             library("paper", "io.papermc.paper", "paper-api").version("26.1.2.build.+")
