@@ -26,7 +26,7 @@ dependencyResolutionManagement {
             //Cloud command framework
             library("cloudPaper", "org.incendo", "cloud-paper").version("2.0.0-SNAPSHOT")
             library("cloudAnnotations", "org.incendo", "cloud-annotations").version("2.0.0")
-            library("cloudExtras", "org.incendo", "cloud-minecraft-extras").version("2.0.0-SNAPSHOT")
+            library("cloudExtras", "org.incendo", "cloud-minecraft-extras").version("2.0.0")
             library("commodore", "me.lucko", "commodore").version("2.2")
 
             //Caching
