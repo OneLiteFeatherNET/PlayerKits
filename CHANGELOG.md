@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.0.2](https://github.com/OneLiteFeatherNET/PlayerKits/compare/v1.0.1...v1.0.2) (2026-07-23)
+
+
+### Bug Fixes
+
+* **deps:** update dependency org.incendo:cloud-annotations to v2.1.0 ([#81](https://github.com/OneLiteFeatherNET/PlayerKits/issues/81)) ([2b9845b](https://github.com/OneLiteFeatherNET/PlayerKits/commit/2b9845b476c5b3bc49b564f3fc61d9af8a01ecce))
+* **deps:** update dependency org.incendo:cloud-minecraft-extras to v2.0.0 ([#78](https://github.com/OneLiteFeatherNET/PlayerKits/issues/78)) ([bdce017](https://github.com/OneLiteFeatherNET/PlayerKits/commit/bdce01752c5b3a35e1ecb54da67c882c9d649ffe))
+* **deps:** update dependency org.incendo:cloud-paper to v2.0.0 ([#79](https://github.com/OneLiteFeatherNET/PlayerKits/issues/79)) ([eb9af1d](https://github.com/OneLiteFeatherNET/PlayerKits/commit/eb9af1de372cbf7b26db72df9d9a109c0209e9c6))
+
 ## [1.0.1](https://github.com/OneLiteFeatherNET/PlayerKits/compare/v1.0.0...v1.0.1) (2026-07-13)
 
 
