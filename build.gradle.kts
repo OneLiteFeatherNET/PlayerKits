@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "net.onelitefeather"
-version = (version as String).substringBefore('#').trim()
+version = "1.0.1" // x-release-please-version
 
 java {
     toolchain {
