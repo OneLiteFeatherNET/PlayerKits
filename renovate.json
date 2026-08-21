@@ -1,7 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "github>OneLiteFeatherNET/renovate:default(OneLiteFeatherNET/player-kits-maintainers)",
-    "github>OneLiteFeatherNET/renovate:paper"
+    "github>OneLiteFeatherNET/renovate:default(OneLiteFeatherNET/playerkits-maintainers)"
   ]
 }
