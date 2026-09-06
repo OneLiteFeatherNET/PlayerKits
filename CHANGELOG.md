@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.0.2](https://github.com/OneLiteFeatherNET/PlayerKits/compare/v1.0.1...v1.0.2) (2026-09-06)
+
+
+### Bug Fixes
+
+* **deps:** update dependency org.incendo:cloud-annotations to v2.1.0 ([#81](https://github.com/OneLiteFeatherNET/PlayerKits/issues/81)) ([2b9845b](https://github.com/OneLiteFeatherNET/PlayerKits/commit/2b9845b476c5b3bc49b564f3fc61d9af8a01ecce))
+* **deps:** update dependency org.incendo:cloud-minecraft-extras to v2.0.0 ([#78](https://github.com/OneLiteFeatherNET/PlayerKits/issues/78)) ([bdce017](https://github.com/OneLiteFeatherNET/PlayerKits/commit/bdce01752c5b3a35e1ecb54da67c882c9d649ffe))
+* **deps:** update dependency org.incendo:cloud-paper to v2.0.0 ([#79](https://github.com/OneLiteFeatherNET/PlayerKits/issues/79)) ([eb9af1d](https://github.com/OneLiteFeatherNET/PlayerKits/commit/eb9af1de372cbf7b26db72df9d9a109c0209e9c6))
+* **deps:** update dependency org.junit.jupiter:junit-jupiter-api to v6.1.3 ([#84](https://github.com/OneLiteFeatherNET/PlayerKits/issues/84)) ([79f8a95](https://github.com/OneLiteFeatherNET/PlayerKits/commit/79f8a9507ba3b87ef532a1c95e52a01feb37fed1))
+* **deps:** update hibernate to v7.4.6.final ([#91](https://github.com/OneLiteFeatherNET/PlayerKits/issues/91)) ([8838677](https://github.com/OneLiteFeatherNET/PlayerKits/commit/8838677e58cfa7c496b5bd9d1bfcf2e7da25a36a))
+* **deps:** update hibernate to v7.4.7.final ([#92](https://github.com/OneLiteFeatherNET/PlayerKits/issues/92)) ([4fcae87](https://github.com/OneLiteFeatherNET/PlayerKits/commit/4fcae876f50a19fd25d43ca1077a11b05f845a91))
+
 ## [1.0.1](https://github.com/OneLiteFeatherNET/PlayerKits/compare/v1.0.0...v1.0.1) (2026-07-13)
 
 
