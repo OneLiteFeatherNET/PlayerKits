@@ -12,7 +12,7 @@ dependencyResolutionManagement {
         create("libs") {
             version("shadow", "9.6.1")
             version("pluginYml", "0.6.0")
-            version("runPaper", "3.0.2")
+            version("runPaper", "3.1.0")
 
 
             version("hibernate", "7.4.7.Final")
