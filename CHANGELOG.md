@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.3](https://github.com/OneLiteFeatherNET/PlayerKits/compare/v1.0.2...v1.0.3) (2026-09-13)
+
+
+### Bug Fixes
+
+* **deps:** update hibernate to v7.4.8.final ([#96](https://github.com/OneLiteFeatherNET/PlayerKits/issues/96)) ([42a44b4](https://github.com/OneLiteFeatherNET/PlayerKits/commit/42a44b478cfd1fd338135fb305c6b579173d96b4))
+
 ## [1.0.2](https://github.com/OneLiteFeatherNET/PlayerKits/compare/v1.0.1...v1.0.2) (2026-09-06)
 
 
