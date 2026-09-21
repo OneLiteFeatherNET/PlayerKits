@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.0.3](https://github.com/OneLiteFeatherNET/PlayerKits/compare/v1.0.2...v1.0.3) (2026-09-21)
+
+
+### Bug Fixes
+
+* **deps:** update dependency com.github.ben-manes.caffeine:caffeine to v3.3.0 ([#102](https://github.com/OneLiteFeatherNET/PlayerKits/issues/102)) ([5b0fb0d](https://github.com/OneLiteFeatherNET/PlayerKits/commit/5b0fb0de37298965074d7b6117b6af16f7b6635f))
+* **deps:** update dependency org.incendo:cloud-minecraft-extras to v2.0.1 ([#98](https://github.com/OneLiteFeatherNET/PlayerKits/issues/98)) ([ae56fb4](https://github.com/OneLiteFeatherNET/PlayerKits/commit/ae56fb4cb3a8c1864078666dac98d72d37224f85))
+* **deps:** update dependency org.incendo:cloud-paper to v2.0.1 ([#99](https://github.com/OneLiteFeatherNET/PlayerKits/issues/99)) ([cb7912c](https://github.com/OneLiteFeatherNET/PlayerKits/commit/cb7912cb9698c9410568bd8d5fe6800472c4a7ce))
+* **deps:** update hibernate to v7.4.10.final ([#101](https://github.com/OneLiteFeatherNET/PlayerKits/issues/101)) ([5707b85](https://github.com/OneLiteFeatherNET/PlayerKits/commit/5707b85863a33bc56b635991af2f32e065556f79))
+* **deps:** update hibernate to v7.4.8.final ([#96](https://github.com/OneLiteFeatherNET/PlayerKits/issues/96)) ([42a44b4](https://github.com/OneLiteFeatherNET/PlayerKits/commit/42a44b478cfd1fd338135fb305c6b579173d96b4))
+* **deps:** update hibernate to v7.4.9.final ([#100](https://github.com/OneLiteFeatherNET/PlayerKits/issues/100)) ([0b5c0c9](https://github.com/OneLiteFeatherNET/PlayerKits/commit/0b5c0c999d8985b408b7f4ed7bcc50e6574e2dbd))
+
 ## [1.0.2](https://github.com/OneLiteFeatherNET/PlayerKits/compare/v1.0.1...v1.0.2) (2026-09-06)
 
 
