@@ -46,7 +46,7 @@ dependencies {
 tasks {
 
     runServer {
-        minecraftVersion("26.1.2")
+        minecraftVersion("26.3")
         jvmArgs("-Xmx4G", "-Dcom.mojang.eula.agree=true")
     }
 
